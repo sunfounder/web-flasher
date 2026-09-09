@@ -3,7 +3,7 @@
 通用浏览器固件烧录页：**Chrome / Edge 打开即用**（Web Serial 直连设备，无需安装驱动与软件），
 可烧录任意 ESP 系列设备（ESP32 / S2 / S3 / C3 等）。
 
-在线地址：https://sunfounder.github.io/web-flasher/
+在线地址：https://cavonlee.github.io/web-flasher/
 
 ## 使用
 1. 用 Chrome 或 Edge 打开本页（必须 https 或 localhost）。
