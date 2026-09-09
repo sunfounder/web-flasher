@@ -1,0 +1,22 @@
+{
+  "firmwares": [
+    {
+      "id": "qc-tool-v1.0.0",
+      "name": "思天 QC 工具",
+      "version": "1.0.0",
+      "date": "2026-09-04",
+      "target": "ESP32-S3（LilyGO T-Display-S3，16MB Flash）",
+      "note": "出厂/整机固件（合并镜像，从 0x0 起烧，含 bootloader+分区表）",
+      "flashMode": "dio",
+      "flashFreq": "80m",
+      "flashSize": "16MB",
+      "eraseAll": true,
+      "segments": [
+        {
+          "file": "firmwares/qc-tool-v1.0.0-merged.bin",
+          "address": 0
+        }
+      ]
+    }
+  ]
+}
