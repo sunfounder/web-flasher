@@ -9,6 +9,7 @@ SunFounder 固件烧录工具集：**首页是一份工具清单**，点进每�
 ```
 index.html          工具清单页（读 tools.json 渲染列表，点条目进对应工具）
 tools.json          工具清单：{ name, version, target, desc, path }
+favicon.png         站点图标（SunFounder logo）
 vendor/             共享库（esptool-js 打包件）
 tools/<工具id>/
   index.html        该工具的烧录页面（选版本 → 连接刷机）
