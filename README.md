@@ -64,4 +64,4 @@ esptool --chip esp32s3 merge_bin --flash_mode dio --flash_freq 80m --flash_size 
 ## 现有工具
 | 工具 | 版本 | 目标设备 |
 | :--: | :--: | :-- |
-| 思天 QC 工具 | 1.0.0 | ESP32-S3（LilyGO T-Display-S3，16MB） |
+| 思天 QC 工具 | 1.0.1 | ESP32-S3（LilyGO T-Display-S3，16MB） |
