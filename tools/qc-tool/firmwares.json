@@ -1,10 +1,26 @@
 {
   "firmwares": [
     {
+      "id": "qc-tool-v1.0.3",
+      "version": "1.0.3",
+      "date": "2026-09-10",
+      "note": "出厂整包镜像（固件版本必须 ≥ 2.0.9）",
+      "flashMode": "dio",
+      "flashFreq": "80m",
+      "flashSize": "16MB",
+      "eraseAll": true,
+      "segments": [
+        {
+          "file": "firmwares/qc-tool-v1.0.3-merged.bin",
+          "address": 0
+        }
+      ]
+    },
+    {
       "id": "qc-tool-v1.0.2",
       "version": "1.0.2",
       "date": "2026-09-10",
-      "note": "出厂整包镜像（修复放电时电池电流显示）",
+      "note": "修复放电时电池电流显示",
       "flashMode": "dio",
       "flashFreq": "80m",
       "flashSize": "16MB",
