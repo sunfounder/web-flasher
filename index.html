@@ -3,135 +3,55 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>固件烧录工具集 · SunFounder Web Flasher</title>
+<title>固件烧录工具集 · SunFounder</title>
 <style>
-  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:640px;margin:36px auto;padding:0 16px;color:#222}
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:720px;margin:40px auto;padding:0 16px;color:#222}
   h2{margin-bottom:6px}
   .ver{color:#666;font-size:13px;margin-top:0}
-  ol{line-height:1.8;padding-left:22px}
-  .warn{color:#a11;font-size:13px}
-  label{font-weight:bold;display:block;margin:14px 0 4px}
-  select{font-size:16px;padding:8px;width:100%;box-sizing:border-box;border:1px solid #bbb;border-radius:6px}
-  .info{background:#f4f6f8;border-radius:8px;padding:8px 12px;font-size:13px;color:#333;margin-top:8px;line-height:1.7;white-space:pre-wrap}
-  button{font-size:17px;padding:12px 22px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:14px}
-  button:disabled{opacity:.5;cursor:not-allowed}
-  .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:16px 0}
-  #bar{height:100%;width:0%;background:#00a04f;transition:width .15s}
-  #st{font-size:14px;min-height:22px;white-space:pre-wrap}
-  #log{background:#111;color:#0f0;font:12px/1.5 Consolas,monospace;height:600px;overflow:auto;padding:10px;border-radius:8px;display:none;margin-top:10px}
+  .list{margin-top:22px;display:grid;gap:12px}
+  a.tool{display:block;text-decoration:none;color:inherit;border:1px solid #e3e6ea;border-radius:10px;padding:14px 16px;transition:.15s;background:#fff}
+  a.tool:hover{border-color:#00a04f;box-shadow:0 2px 10px rgba(0,160,79,.12)}
+  .tname{font-size:17px;font-weight:bold;display:flex;align-items:center;gap:8px}
+  .tag{font-size:12px;font-weight:normal;color:#fff;background:#00a04f;border-radius:10px;padding:1px 8px}
+  .meta{font-size:13px;color:#555;margin-top:6px;line-height:1.7;white-space:pre-line}
+  .go{color:#00a04f;font-size:13px;margin-top:8px;font-weight:bold}
+  .empty{color:#888;font-size:14px;margin-top:20px}
 </style>
 </head>
 <body>
 <h2>固件烧录工具集</h2>
-<p class="ver">Web Flasher · 浏览器直连设备烧录（Web Serial），无需安装驱动/软件</p>
+<p class="ver">Web Flasher · 浏览器直连设备烧录（Web Serial），无需安装驱动与软件；点进对应工具即可烧录</p>
 
-<ol>
-  <li>用 <b>Chrome 或 Edge</b> 打开本页（本页必须运行在 https 或 localhost 下才能连设备）。</li>
-  <li>下方选择要烧录的<b>固件</b>，确认目标设备/参数提示正确。</li>
-  <li>用 USB 线把设备连到电脑，点「连接并刷机」，弹窗里选设备对应的串口。</li>
-  <li>进度到 100% 提示完成后，如设备没有自动重启，<b>拔下 USB 再插上</b>即可。</li>
-</ol>
-<p class="warn">失败排查：弹窗没出现 → 确认用 Chrome/Edge 且本页是 https 或 localhost；选错串口/提示失败 → 重拔 USB 再试。</p>
-
-<label for="fw">选择工具 / 固件</label>
-<select id="fw"></select>
-<div class="info" id="fwinfo"></div>
-
-<button id="go">连接并刷机</button>
-<div class="bar"><div id="bar"></div></div>
-<div id="st"></div>
-<div id="log"></div>
+<div class="list" id="list"></div>
+<p class="empty" id="empty" style="display:none">暂无工具</p>
 
 <script type="module">
-import { ESPLoader, Transport } from "./vendor/esptool-js-bundle.js";
-
-const st = el("st"), bar = el("bar"), logEl = el("log");
-const sel = el("fw"), infoEl = el("fwinfo"), go = el("go");
-function el(id){ return document.getElementById(id); }
-function log(s){ logEl.style.display="block"; const d=document.createElement("div"); d.textContent=s; logEl.appendChild(d); logEl.scrollTop=1e9; }
-const terminal = { clean(){}, writeLine:d=>log(d), write:d=>log(d) };
-
-let LIST = [];
-
-async function loadList(){
-  const resp = await fetch("./firmwares.json", { cache: "no-store" });
-  if (!resp.ok) throw new Error("固件清单读取失败 HTTP " + resp.status);
-  LIST = (await resp.json()).firmwares || [];
-  if (!LIST.length) throw new Error("固件清单为空");
-  sel.innerHTML = "";
-  for (const fw of LIST){
-    const o = document.createElement("option");
-    o.value = LIST.indexOf(fw);
-    o.textContent = fw.name + "  v" + fw.version + (fw.target ? "（" + fw.target + "）" : "");
-    sel.appendChild(o);
-  }
-  showInfo();
-}
-function showInfo(){
-  const fw = LIST[+sel.value];
-  if (!fw) return;
-  infoEl.textContent = "目标设备：" + (fw.target || "—") + "
-"
-    + "版本：" + fw.version + (fw.date ? "（" + fw.date + "）" : "") + "
-"
-    + "参数：" + (fw.flashMode || "dio") + " / " + (fw.flashFreq || "80m") + " / " + (fw.flashSize || "4MB")
-    + " · 段数：" + fw.segments.length + "
-"
-    + (fw.note ? "说明：" + fw.note : "");
-}
-sel.addEventListener("change", showInfo);
-
-go.addEventListener("click", async () => {
-  go.disabled = true;
-  bar.style.width = "0%";
-  st.textContent = "";
-  logEl.innerHTML = "";
-  logEl.style.display = "none";
-  try {
-    const fw = LIST[+sel.value];
-    if (!fw) throw new Error("请先选择固件");
-    if (!navigator.serial) throw new Error("浏览器不支持 Web Serial，请用 Chrome/Edge（https 或 localhost）");
-    st.textContent = "① 等待选择串口…（若没弹窗请见上方排查）";
-    const port = await navigator.serial.requestPort();
-    st.textContent = "② 正在连接设备…";
-    const loader = new ESPLoader({ transport: new Transport(port, true), baudrate: 115200, terminal });
-    await loader.main();
-
-    st.textContent = "③ 读取固件…";
-    const segs = [];
-    for (const s of fw.segments){
-      const resp = await fetch(s.file, { cache: "no-store" });
-      if (!resp.ok) throw new Error("固件文件读取失败 HTTP " + resp.status + "：" + s.file);
-      segs.push({ data: new Uint8Array(await resp.arrayBuffer()), address: s.address });
+const listEl = document.getElementById("list");
+const emptyEl = document.getElementById("empty");
+fetch("./tools.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error("工具清单读取失败 HTTP " + r.status); return r.json(); })
+  .then(data => {
+    const tools = data.tools || [];
+    if (!tools.length) { emptyEl.style.display = "block"; return; }
+    for (const t of tools) {
+      const a = document.createElement("a");
+      a.className = "tool";
+      a.href = t.path;
+      const name = document.createElement("div");
+      name.className = "tname";
+      name.textContent = t.name;
+      if (t.version) { const s = document.createElement("span"); s.className = "tag"; s.textContent = "v" + t.version; name.appendChild(s); }
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = (t.target ? "目标设备：" + t.target + "\n" : "") + (t.desc || "");
+      const go = document.createElement("div");
+      go.className = "go";
+      go.textContent = "进入烧录页面 →";
+      a.appendChild(name); a.appendChild(meta); a.appendChild(go);
+      listEl.appendChild(a);
     }
-
-    st.textContent = "④ 写入中…";
-    const total = segs.reduce((a, s) => a + s.data.length, 0);
-    let done = 0;
-    await loader.writeFlash({
-      fileArray: segs,
-      flashMode: fw.flashMode || "dio",
-      flashFreq: fw.flashFreq || "80m",
-      flashSize: fw.flashSize || "4MB",
-      eraseAll: fw.eraseAll !== false,
-      compress: true,
-      reportProgress: (fi, w, t) => { done = Math.round(w / t * 100); bar.style.width = done + "%"; st.textContent = "④ 写入中 " + done + "%"; },
-    });
-    try { await loader.after("hard_reset"); } catch (e) { /* 部分设备（原生 USB）无法硬复位，忽略 */ }
-    await loader.transport.disconnect();
-    bar.style.width = "100%";
-    st.textContent = "✅ 烧录完成！";
-    alert("✅ 烧录完成！
-
-如果设备没有自动重启，请拔下 USB 再插上。
-" + fw.name + " v" + fw.version);
-  } catch (e) {
-    st.textContent = "❌ " + e.message;
-    log(String(e && e.stack || e));
-  } finally { go.disabled = false; }
-});
-
-loadList().catch(e => { st.textContent = "❌ " + e.message; log(String(e && e.stack || e)); });
+  })
+  .catch(e => { emptyEl.style.display = "block"; emptyEl.textContent = "❌ " + e.message; });
 </script>
 </body>
 </html>

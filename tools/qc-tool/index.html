@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>思天 QC 工具 · 固件烧录</title>
+<style>
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:640px;margin:32px auto;padding:0 16px;color:#222}
+  a.back{font-size:13px;color:#00a04f;text-decoration:none}
+  h2{margin:10px 0 6px}
+  .ver{color:#666;font-size:13px;margin-top:0}
+  ol{line-height:1.8;padding-left:22px}
+  .warn{color:#a11;font-size:13px}
+  label{font-weight:bold;display:block;margin:14px 0 4px}
+  select{font-size:16px;padding:8px;width:100%;box-sizing:border-box;border:1px solid #bbb;border-radius:6px}
+  .info{background:#f4f6f8;border-radius:8px;padding:8px 12px;font-size:13px;color:#333;margin-top:8px;line-height:1.7;white-space:pre-wrap}
+  button{font-size:17px;padding:12px 22px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:14px}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:16px 0}
+  #bar{height:100%;width:0%;background:#00a04f;transition:width .15s}
+  #st{font-size:14px;min-height:22px;white-space:pre-wrap}
+  #log{background:#111;color:#0f0;font:12px/1.5 Consolas,monospace;height:600px;overflow:auto;padding:10px;border-radius:8px;display:none;margin-top:10px}
+</style>
+</head>
+<body>
+<a class="back" href="../../">← 返回工具列表</a>
+<h2>思天 QC 工具 · 固件烧录</h2>
+<p class="ver">ESP32-S3（LilyGO T-Display-S3，16MB Flash）· 整包镜像从 0x0 烧录</p>
+
+<ol>
+  <li>用 <b>Chrome 或 Edge</b> 打开本页（必须 https 或 localhost）。</li>
+  <li>下方选择要烧录的<b>固件版本</b>，确认参数提示正确。</li>
+  <li>用 USB 线把 QC 工具连到电脑，点「连接并刷机」，弹窗里选设备对应的串口。</li>
+  <li>进度到 100% 弹窗提示后，<b>拔下 USB 再插上</b>设备即启动（网页无法触发硬复位，这一步必做）。</li>
+  <li>开机后到设备「系统关于」核对版本号。</li>
+</ol>
+<p class="warn">失败排查：弹窗没出现 → 确认用 Chrome/Edge 且本页是 https 或 localhost；选错串口/提示失败 → 重拔 USB 再试。</p>
+
+<label for="fw">选择固件版本</label>
+<select id="fw"></select>
+<div class="info" id="fwinfo"></div>
+
+<button id="go">连接并刷机</button>
+<div class="bar"><div id="bar"></div></div>
+<div id="st"></div>
+<div id="log"></div>
+
+<script type="module">
+import { ESPLoader, Transport } from "../../vendor/esptool-js-bundle.js";
+
+const st = el("st"), bar = el("bar"), logEl = el("log");
+const sel = el("fw"), infoEl = el("fwinfo"), go = el("go");
+function el(id){ return document.getElementById(id); }
+function log(s){ logEl.style.display="block"; const d=document.createElement("div"); d.textContent=s; logEl.appendChild(d); logEl.scrollTop=1e9; }
+const terminal = { clean(){}, writeLine:d=>log(d), write:d=>log(d) };
+
+let LIST = [];
+
+async function loadList(){
+  const resp = await fetch("./firmwares.json", { cache: "no-store" });
+  if (!resp.ok) throw new Error("固件清单读取失败 HTTP " + resp.status);
+  LIST = (await resp.json()).firmwares || [];
+  if (!LIST.length) throw new Error("固件清单为空");
+  sel.innerHTML = "";
+  for (const fw of LIST){
+    const o = document.createElement("option");
+    o.value = LIST.indexOf(fw);
+    o.textContent = "v" + fw.version + (fw.date ? "（" + fw.date + "）" : "") + (fw.note ? " · " + fw.note : "");
+    sel.appendChild(o);
+  }
+  showInfo();
+}
+function showInfo(){
+  const fw = LIST[+sel.value];
+  if (!fw) return;
+  infoEl.textContent = "版本：" + fw.version + (fw.date ? "（" + fw.date + "）" : "") + "\n"
+    + "参数：" + (fw.flashMode || "dio") + " / " + (fw.flashFreq || "80m") + " / " + (fw.flashSize || "4MB")
+    + " · 段数：" + fw.segments.length + "\n"
+    + (fw.note ? "说明：" + fw.note : "");
+}
+sel.addEventListener("change", showInfo);
+
+go.addEventListener("click", async () => {
+  go.disabled = true;
+  bar.style.width = "0%";
+  st.textContent = "";
+  logEl.innerHTML = "";
+  logEl.style.display = "none";
+  try {
+    const fw = LIST[+sel.value];
+    if (!fw) throw new Error("请先选择固件版本");
+    if (!navigator.serial) throw new Error("浏览器不支持 Web Serial，请用 Chrome/Edge（https 或 localhost）");
+    st.textContent = "① 等待选择串口…（若没弹窗请见上方排查）";
+    const port = await navigator.serial.requestPort();
+    st.textContent = "② 正在连接设备…";
+    const loader = new ESPLoader({ transport: new Transport(port, true), baudrate: 115200, terminal });
+    await loader.main();
+
+    st.textContent = "③ 读取固件…";
+    const segs = [];
+    for (const s of fw.segments){
+      const resp = await fetch(s.file, { cache: "no-store" });
+      if (!resp.ok) throw new Error("固件文件读取失败 HTTP " + resp.status + "：" + s.file);
+      segs.push({ data: new Uint8Array(await resp.arrayBuffer()), address: s.address });
+    }
+
+    st.textContent = "④ 写入中…";
+    await loader.writeFlash({
+      fileArray: segs,
+      flashMode: fw.flashMode || "dio",
+      flashFreq: fw.flashFreq || "80m",
+      flashSize: fw.flashSize || "4MB",
+      eraseAll: fw.eraseAll !== false,
+      compress: true,
+      reportProgress: (fi, w, t) => { const p = Math.round(w / t * 100); bar.style.width = p + "%"; st.textContent = "④ 写入中 " + p + "%"; },
+    });
+    try { await loader.after("hard_reset"); } catch (e) { /* 原生 USB 设备无法硬复位，忽略 */ }
+    await loader.transport.disconnect();
+    bar.style.width = "100%";
+    st.textContent = "✅ 烧录完成！";
+    alert("✅ 烧录完成！\n\n请拔下 USB 再插上，设备会自动启动。\n开机后到「系统关于」核对版本应为 " + fw.version + "。");
+  } catch (e) {
+    st.textContent = "❌ " + e.message;
+    log(String(e && e.stack || e));
+  } finally { go.disabled = false; }
+});
+
+loadList().catch(e => { st.textContent = "❌ " + e.message; log(String(e && e.stack || e)); });
+</script>
+</body>
+</html>
