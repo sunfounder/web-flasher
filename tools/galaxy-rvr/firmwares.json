@@ -1,0 +1,33 @@
+{
+  "tool": "galaxy-rvr",
+  "kind": "avr-stk500v1",
+  "board": {
+    "name": "Arduino UNO (ATmega328P)",
+    "chip": "atmega328p",
+    "signature": "1e950f",
+    "pageSize": 128,
+    "flashSize": 32256,
+    "baudRate": 115200,
+    "resetDelayMs": 500
+  },
+  "firmwares": [
+    {
+      "id": "galaxy-rvr-v2-2.0.0",
+      "family": "V2",
+      "version": "2.0.0",
+      "date": "2026-09-08",
+      "channel": "正式版",
+      "note": "Robo Pilot 遥控器 / 兼容 Mammoth Coding 图形化编程",
+      "file": "firmwares/galaxy-rvr.ino.2.0.0.hex"
+    },
+    {
+      "id": "galaxy-rvr-v1-1.2.1",
+      "family": "V1",
+      "version": "1.2.1",
+      "date": "2026-04-09",
+      "channel": "旧版（保留兼容）",
+      "note": "配合 SunFounder Controller APP 使用；老用户机器沿用 V1 固件",
+      "file": "firmwares/galaxy-rvr.ino.1.2.1.hex"
+    }
+  ]
+}

@@ -1,6 +1,14 @@
 {
   "tools": [
     {
+      "id": "galaxy-rvr",
+      "name": "GalaxyRVR 火星车",
+      "version": "V2 · 2.0.0",
+      "target": "Arduino UNO（ATmega328P，CH340 串口）",
+      "desc": "主板固件烧录：V1（1.2.1）/ V2（2.0.0）二选一",
+      "path": "tools/galaxy-rvr/"
+    },
+    {
       "id": "qc-tool",
       "name": "思天 QC 工具",
       "version": "1.0.4",

@@ -1,7 +1,8 @@
 # 固件烧录工具集（Web Flasher）
 
 SunFounder 固件烧录工具集：**首页是一份工具清单**，点进每个工具才是对应的烧录页面。
-全部基于浏览器 Web Serial 直连设备，**Chrome / Edge 打开即用**，无需安装驱动与软件，支持 ESP32 / S2 / S3 / C3 等系列。
+全部基于浏览器 Web Serial 直连设备，**Chrome / Edge 打开即用**，无需安装驱动与软件。
+支持两类目标：**ESP32 系列**（esptool-js，整包镜像）与 **AVR / Arduino UNO**（STK500v1，Intel HEX，直刷主板 bootloader）。
 
 在线地址：https://sunfounder.github.io/web-flasher/
 
@@ -10,11 +11,12 @@ SunFounder 固件烧录工具集：**首页是一份工具清单**，点进每�
 index.html          工具清单页（读 tools.json 渲染列表，点条目进对应工具）
 tools.json          工具清单：{ name, version, target, desc, path }
 favicon.png         站点图标（SunFounder logo）
-vendor/             共享库（esptool-js 打包件）
+vendor/             共享库（esptool-js 打包件；webserial-flasher = AVR/STK500v1）
 tools/<工具id>/
   index.html        该工具的烧录页面（选版本 → 连接刷机）
   firmwares.json    该工具的固件版本清单
-  firmwares/*.bin   固件镜像
+  firmwares/*.bin   固件镜像（ESP32）
+  firmwares/*.hex   固件镜像（AVR）
 ```
 
 ## 使用
@@ -61,7 +63,48 @@ esptool --chip esp32s3 merge_bin --flash_mode dio --flash_freq 80m --flash_size 
   -o out.bin 0x0 bootloader.bin 0x8000 partitions.bin 0xe000 boot_app0.bin 0x10000 firmware.bin
 ```
 
+## 新增一个 AVR（Arduino UNO）工具
+
+AVR 固件走的是 **STK500v1**（optiboot），不是 esptool，所以用 `vendor/webserial-flasher/`，
+不能 import 它的 `index.js`（会连带拉 Node 专用的 `serialport` 裸包名，浏览器直接加载失败），
+要从具体模块入口 import：
+
+```js
+import { STK500 } from "../../vendor/webserial-flasher/stk500.js";
+import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/WebSerialTransport.js";
+```
+
+`firmwares.json`（AVR 版）字段：
+
+```json
+{
+  "board": {
+    "name": "Arduino UNO (ATmega328P)",
+    "chip": "atmega328p",
+    "signature": "1e950f",
+    "pageSize": 128,
+    "flashSize": 32256,
+    "baudRate": 115200,
+    "resetDelayMs": 500
+  },
+  "firmwares": [
+    { "id": "xxx-v1.0.0", "family": "V2", "version": "1.0.0", "date": "2026-01-01",
+      "note": "说明", "file": "firmwares/xxx.hex" }
+  ]
+}
+```
+
+要点：
+
+- 用 **应用 hex**（`xxx.ino.X.Y.Z.hex`），**不要**用 `with_bootloader.hex`——后面那个是给 ISP 修 bootloader 用的。
+- 页面**不做 chip erase**：optiboot 每次 `PROG_PAGE` 都会先擦该页（见 optiboot.c 的 `writebuffer()`），
+  官方 avrdude 脚本用的也是 `-D`（不自动整片擦）。整片擦只会多一次风险，没有收益。
+- DTR 复位要**自己发**：库的 `WebSerialTransport.setSignals()` 传的是 `{dtr,rts}`，
+  而 Web Serial 规范要的是 `{dataTerminalReady,requestToSend}`，交给它等于没复位（页面里 `resetMethod:'none'` + 自己发脉冲）。
+- 板上有 Upload/Run 拨动开关的（如 GalaxyRVR 扩展板），页面说明里要写清楚。
+
 ## 现有工具
 | 工具 | 版本 | 目标设备 |
 | :--: | :--: | :-- |
 | 思天 QC 工具 | 1.0.4 | ESP32-S3（LilyGO T-Display-S3，16MB） |
+| GalaxyRVR 火星车 | V2 · 2.0.0 / V1 · 1.2.1 | Arduino UNO（ATmega328P，CH340） |

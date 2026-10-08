@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GalaxyRVR 火星车 · 主板固件烧录</title>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<link rel="apple-touch-icon" href="../../favicon.png">
+<style>
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:640px;margin:32px auto;padding:0 16px;color:#222}
+  a.back{font-size:13px;color:#00a04f;text-decoration:none}
+  h2{margin:10px 0 6px}
+  .ver{color:#666;font-size:13px;margin-top:0}
+  ol{line-height:1.8;padding-left:22px}
+  .warn{color:#a11;font-size:13px}
+  label{font-weight:bold;display:block;margin:14px 0 4px}
+  select{font-size:16px;padding:8px;width:100%;box-sizing:border-box;border:1px solid #bbb;border-radius:6px}
+  .info{background:#f4f6f8;border-radius:8px;padding:8px 12px;font-size:13px;color:#333;margin-top:8px;line-height:1.7;white-space:pre-wrap}
+  button{font-size:17px;padding:12px 22px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:14px}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:16px 0}
+  #bar{height:100%;width:0%;background:#00a04f;transition:width .15s}
+  #st{font-size:14px;min-height:22px;white-space:pre-wrap}
+  #log{background:#111;color:#0f0;font:12px/1.5 Consolas,monospace;height:320px;overflow:auto;padding:10px;border-radius:8px;display:none;margin-top:10px}
+  .tag{display:inline-block;background:#eef7f1;color:#00753a;border:1px solid #bfe3cf;border-radius:4px;padding:0 5px;font-size:12px;margin-right:6px}
+</style>
+</head>
+<body>
+<a class="back" href="../../">← 返回工具列表</a>
+<h2>GalaxyRVR 火星车 · 主板固件烧录</h2>
+<p class="ver">Arduino UNO（ATmega328P）· CH340 串口 · 浏览器直刷，不用装 avrdude / Arduino IDE</p>
+
+<ol>
+  <li>用 <b>Chrome 或 Edge</b> 打开本页（Web Serial 必须 https 或 localhost）。</li>
+  <li>火星车通电，USB 线接<b>主板</b>；把扩展板上的拨动开关拨到 <b>Upload</b>。</li>
+  <li>关掉 Arduino IDE、串口监视器等占着串口的软件。</li>
+  <li>下方选择固件版本（<b>V2</b> 或 <b>V1</b>），点「连接并烧录」，弹窗里选 <b>USB-SERIAL CH340</b> 对应的串口。</li>
+  <li>进度到 100% 后，把拨动开关拨回 <b>Run</b>，重新上电即运行新固件。</li>
+</ol>
+<p class="warn">失败排查：没有弹窗 → 确认用 Chrome/Edge 且本页是 https 或 localhost；提示握手失败 → 确认开关在 Upload、串口没被占用、CH340 驱动已装好（设备管理器里应看到 USB-SERIAL CH340）。</p>
+
+<label for="fw">选择固件版本</label>
+<select id="fw"></select>
+<div class="info" id="fwinfo"></div>
+
+<button id="go">连接并烧录</button>
+<div class="bar"><div id="bar"></div></div>
+<div id="st"></div>
+<div id="log"></div>
+
+<script type="module">
+// 只从具体模块入口 import：包的 index.js 会连带拉 Node 专用的 serialport，
+// 浏览器里解析不了裸包名，整页脚本会直接加载失败
+import { STK500 } from "../../vendor/webserial-flasher/stk500.js";
+import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/WebSerialTransport.js";
+
+const st = el("st"), bar = el("bar"), logEl = el("log");
+const sel = el("fw"), infoEl = el("fwinfo"), go = el("go");
+function el(id){ return document.getElementById(id); }
+function log(s){ logEl.style.display="block"; const d=document.createElement("div"); d.textContent=s; logEl.appendChild(d); logEl.scrollTop=1e9; }
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+let BOARD = {};
+let LIST = [];
+
+async function loadList(){
+  const resp = await fetch("./firmwares.json", { cache: "no-store" });
+  if (!resp.ok) throw new Error("固件清单读取失败 HTTP " + resp.status);
+  const cfg = await resp.json();
+  BOARD = cfg.board || {};
+  LIST = cfg.firmwares || [];
+  if (!LIST.length) throw new Error("固件清单为空");
+  sel.innerHTML = "";
+  for (const fw of LIST){
+    const o = document.createElement("option");
+    o.value = LIST.indexOf(fw);
+    const parts = ["v" + fw.version];
+    if (fw.family) parts.unshift(fw.family);
+    if (fw.date) parts.push("（" + fw.date + "）");
+    o.textContent = parts.join(" · ") + (fw.note ? " · " + fw.note : "");
+    sel.appendChild(o);
+  }
+  showInfo();
+}
+
+function showInfo(){
+  const fw = LIST[+sel.value];
+  if (!fw) return;
+  infoEl.textContent =
+    "大版本：" + (fw.family || "-") + "　固件版本：" + fw.version + (fw.date ? "（" + fw.date + "）" : "") + "\n"
+    + "目标板：" + (BOARD.name || "Arduino UNO") + "　芯片：" + (BOARD.chip || "atmega328p")
+    + "　签名：" + String(BOARD.signature || "1e950f").replace(/(..)(..)(..)/, "0x$1 0x$2 0x$3") + "\n"
+    + "窗口：" + (fw.file || "") + "\n"
+    + (fw.channel ? "通道：" + fw.channel + "\n" : "")
+    + (fw.note ? "说明：" + fw.note : "");
+}
+sel.addEventListener("change", showInfo);
+
+function hexToBytes(hex){
+  const s = String(hex || "").replace(/[^0-9a-fA-F]/g, "");
+  const out = new Uint8Array(s.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(s.substr(i * 2, 2), 16);
+  return out;
+}
+
+go.addEventListener("click", async () => {
+  go.disabled = true;
+  bar.style.width = "0%";
+  st.textContent = "";
+  logEl.innerHTML = "";
+  logEl.style.display = "none";
+  let transport = null;
+  try {
+    const fw = LIST[+sel.value];
+    if (!fw) throw new Error("请先选择固件版本");
+    if (!navigator.serial) throw new Error("浏览器不支持 Web Serial，请用 Chrome/Edge（https 或 localhost）");
+
+    st.textContent = "① 读取固件文件…";
+    const resp = await fetch(fw.file, { cache: "no-store" });
+    if (!resp.ok) throw new Error("固件文件读取失败 HTTP " + resp.status + "：" + fw.file);
+    const hexText = await resp.text();
+    if (hexText.indexOf(":") !== 0) throw new Error("固件文件不是 Intel HEX 格式：" + fw.file);
+
+    const board = {
+      name: BOARD.name || "Arduino UNO",
+      baudRate: BOARD.baudRate || 115200,
+      signature: hexToBytes(BOARD.signature || "1e950f"),
+      pageSize: BOARD.pageSize || 128,
+      timeout: 600,
+      flashSize: BOARD.flashSize || 32256,
+      // 复位由本页自己发：库里 setSignals 用的是 dtr/rts，与 Web Serial 的
+      // dataTerminalReady/requestToSend 不同名，交给它等于不复位
+      resetMethod: "none",
+      resetDelayMs: 0,
+    };
+
+    st.textContent = "② 等待选择串口…（若没弹窗请见上方排查）";
+    const port = await navigator.serial.requestPort();
+    transport = new WebSerialTransport(port);
+    st.textContent = "③ 正在打开串口…";
+    await transport.open(board.baudRate);
+
+    // Arduino 自动复位：DTR 拉低再放开，经 100nF 电容给 RESET 一个脉冲
+    st.textContent = "④ 复位进入 bootloader…";
+    try {
+      await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+      await sleep(120);
+      await port.setSignals({ dataTerminalReady: true, requestToSend: true });
+    } catch (e) {
+      log("setSignals 不受支持，跳过 DTR 复位：" + e.message);
+    }
+    await sleep(BOARD.resetDelayMs || 500);
+
+    const stk = new STK500(transport, board, {
+      logger: (level, message) => log("[" + level + "] " + message),
+      retry: { syncAttempts: 10, retryDelayMs: 250 },
+    });
+
+    st.textContent = "⑤ 与 bootloader 握手…";
+    await stk.sync(10);
+    await stk.sync(3);
+    bar.style.width = "10%";
+
+    st.textContent = "⑥ 识别芯片…";
+    const sig = await stk.verifySignature();
+    log("芯片签名：" + Array.from(sig || []).map(b => "0x" + b.toString(16).padStart(2, "0")).join(" "));
+    bar.style.width = "15%";
+
+    await stk.setOptions();
+    await stk.enterProgrammingMode();
+    bar.style.width = "20%";
+
+    st.textContent = "⑦ 写入固件…0%";
+    await stk.upload(hexText, (pct) => {
+      const p = Math.round(pct);
+      bar.style.width = (20 + p * 0.55) + "%";
+      st.textContent = "⑦ 写入固件…" + p + "%";
+    });
+
+    st.textContent = "⑧ 回读校验…0%";
+    await stk.verify(hexText, (pct) => {
+      const p = Math.round(pct);
+      bar.style.width = (75 + p * 0.20) + "%";
+      st.textContent = "⑧ 回读校验…" + p + "%";
+    });
+
+    st.textContent = "⑨ 退出编程模式…";
+    await stk.exitProgrammingMode();
+    await transport.close();
+    transport = null;
+
+    bar.style.width = "100%";
+    st.textContent = "✅ 烧录完成！";
+    alert("✅ 烧录完成！\n\n"
+      + "固件：" + fw.family + "（v" + fw.version + "）\n"
+      + "① 把扩展板拨动开关拨回 Run\n"
+      + "② 重新上电\n"
+      + "③ 手机端用对应的遥控器连接：" + (fw.family === "V2" ? "Robo Pilot" : "SunFounder Controller APP"));
+  } catch (e) {
+    st.textContent = "❌ " + (e && e.message ? e.message : e);
+    log(String(e && e.stack || e));
+  } finally {
+    if (transport) { try { await transport.close(); } catch (e) { /* ignore */ } }
+    go.disabled = false;
+  }
+});
+
+loadList().catch(e => { st.textContent = "❌ " + e.message; log(String(e && e.stack || e)); });
+</script>
+</body>
+</html>
