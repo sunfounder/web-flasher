@@ -15,24 +15,16 @@
       "id": "galaxy-rvr-2.0.0",
       "version": "2.0.0",
       "date": "2026-09-08",
-      "note_en": "Robo Pilot and Mammoth Coding",
-      "note_zh": "Robo Pilot 遥控器与 Mammoth Coding 图形化编程",
-      "file": "firmwares/galaxy-rvr.ino.2.0.0.hex"
-    },
-    {
-      "id": "galaxy-rvr-1.2.1",
-      "version": "1.2.1",
-      "date": "2026-04-09",
-      "note_en": "Robo Pilot and Scratch",
-      "note_zh": "Robo Pilot 遥控器与 Scratch",
-      "file": "firmwares/galaxy-rvr.ino.1.2.1.hex"
+      "note_en": "Current generation",
+      "note_zh": "现在的版本",
+      "file": "firmwares/galaxy-rvr-2.0.0.hex"
     },
     {
       "id": "galaxy-rvr-1.1.0",
       "version": "1.1.0",
       "date": "2023-08-31",
-      "note_en": "Original release",
-      "note_zh": "最初版本",
+      "note_en": "First generation",
+      "note_zh": "第一代",
       "file": "firmwares/galaxy-rvr-1.1.0.hex"
     }
   ]

@@ -7,8 +7,8 @@
       "version": "2.0.0",
       "target": "Arduino UNO（ATmega328P）",
       "target_en": "Arduino UNO (ATmega328P)",
-      "desc": "主板固件：2.0.0 / 1.2.1 / 1.1.0",
-      "desc_en": "Main board firmware: 2.0.0, 1.2.1 or 1.1.0",
+      "desc": "主板固件：2.0.0 或 1.1.0",
+      "desc_en": "Main board firmware: 2.0.0 or 1.1.0",
       "path": "tools/galaxy-rvr/"
     },
     {

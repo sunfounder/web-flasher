@@ -122,4 +122,4 @@ import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/Web
 | 工具 | 版本 | 目标设备 |
 | :--: | :--: | :-- |
 | 思天 QC 工具 | 1.0.4 | ESP32-S3（LilyGO T-Display-S3，16MB） |
-| GalaxyRVR 火星车 | 2.0.0 / 1.2.1 / 1.1.0 | Arduino UNO（ATmega328P，CH340） |
+| GalaxyRVR 火星车 | 2.0.0 / 1.1.0 | Arduino UNO（ATmega328P，CH340） |
