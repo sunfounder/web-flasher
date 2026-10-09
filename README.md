@@ -63,6 +63,17 @@ esptool --chip esp32s3 merge_bin --flash_mode dio --flash_freq 80m --flash_size 
   -o out.bin 0x0 bootloader.bin 0x8000 partitions.bin 0xe000 boot_app0.bin 0x10000 firmware.bin
 ```
 
+## 多语言（面向客户）
+
+对客户的产品页按 `sunfounder/download` 同一套写法做中英双语，**不引入任何框架**：
+
+- 文案写在 `data-en` / `data-zh` 两个属性上，脚本按语言 `innerHTML` 落地；
+- `getLang()`：URL 的 `?lang=zh|en` 优先，没有就 `navigator.language`（`zh*` → 中文，其余 → 英文）；
+- 右上角语言按钮只改 URL 的 `lang` 参数并刷新，链接把 `lang` 继续带下去（返回上一页不丢语言）；
+- `tools.json` 里 `name_en` / `target_en` / `desc_en` 缺省就回落到中文，索引页两种语言都能显示；
+- 固件清单里文案字段用 `note_en`/`note_zh`、`channel_en`/`channel_zh`；
+- JS 里跑出来的状态文字（"写入固件… 42%"、弹窗）用页面里的 `T(en, zh)` 取，不能只写一份。
+
 ## 新增一个 AVR（Arduino UNO）工具
 
 AVR 固件走的是 **STK500v1**（optiboot），不是 esptool，所以用 `vendor/webserial-flasher/`，
@@ -89,7 +100,9 @@ import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/Web
   },
   "firmwares": [
     { "id": "xxx-v1.0.0", "family": "V2", "version": "1.0.0", "date": "2026-01-01",
-      "note": "说明", "file": "firmwares/xxx.hex" }
+      "note_en": "For the XYZ app", "note_zh": "配合 XYZ APP 使用",
+      "channel_en": "Current release", "channel_zh": "正式版",
+      "file": "firmwares/xxx.hex" }
   ]
 }
 ```

@@ -2,18 +2,24 @@
   "tools": [
     {
       "id": "galaxy-rvr",
-      "name": "GalaxyRVR 火星车",
+      "name": "GalaxyRVR 固件烧录",
+      "name_en": "GalaxyRVR Firmware Update",
       "version": "V2 · 2.0.0",
-      "target": "Arduino UNO（ATmega328P，CH340 串口）",
-      "desc": "主板固件烧录：V1（1.2.1）/ V2（2.0.0）二选一",
+      "target": "Arduino UNO（ATmega328P）",
+      "target_en": "Arduino UNO (ATmega328P)",
+      "desc": "主板固件：V2（2.0.0）或 V1（1.2.1）二选一",
+      "desc_en": "Main board firmware: choose V2 (2.0.0) or V1 (1.2.1)",
       "path": "tools/galaxy-rvr/"
     },
     {
       "id": "qc-tool",
       "name": "思天 QC 工具",
+      "name_en": "QC Tool",
       "version": "1.0.4",
       "target": "ESP32-S3（LilyGO T-Display-S3，16MB Flash）",
+      "target_en": "ESP32-S3 (LilyGO T-Display-S3, 16MB flash)",
       "desc": "PCBA/整机出厂固件烧录（整包镜像，从 0x0 起烧）",
+      "desc_en": "Factory firmware flashing for PCBA / finished units (merged image from 0x0)",
       "path": "tools/qc-tool/"
     }
   ]

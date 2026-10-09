@@ -1,56 +1,77 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GalaxyRVR 火星车 · 主板固件烧录</title>
+<title>GalaxyRVR Firmware Update</title>
 <link rel="icon" type="image/png" href="../../favicon.png">
 <link rel="apple-touch-icon" href="../../favicon.png">
 <style>
-  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:640px;margin:32px auto;padding:0 16px;color:#222}
-  a.back{font-size:13px;color:#00a04f;text-decoration:none}
-  h2{margin:10px 0 6px}
-  .ver{color:#666;font-size:13px;margin-top:0}
-  ol{line-height:1.8;padding-left:22px}
-  .warn{color:#a11;font-size:13px}
-  label{font-weight:bold;display:block;margin:14px 0 4px}
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:640px;margin:32px auto;padding:0 16px;color:#222;line-height:1.5}
+  a.back{font-size:14px;color:#00a04f;text-decoration:none}
+  h2{margin:12px 0 6px}
+  .ver{color:#666;font-size:14px;margin-top:0}
+  ol{line-height:1.9;padding-left:22px}
+  .warn{color:#a11;font-size:13px;line-height:1.7}
+  label{font-weight:bold;display:block;margin:18px 0 4px}
   select{font-size:16px;padding:8px;width:100%;box-sizing:border-box;border:1px solid #bbb;border-radius:6px}
   .info{background:#f4f6f8;border-radius:8px;padding:8px 12px;font-size:13px;color:#333;margin-top:8px;line-height:1.7;white-space:pre-wrap}
-  button{font-size:17px;padding:12px 22px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:14px}
-  button:disabled{opacity:.5;cursor:not-allowed}
+  button.go{font-size:17px;padding:12px 22px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:16px}
+  button.go:disabled{opacity:.5;cursor:not-allowed}
   .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:16px 0}
   #bar{height:100%;width:0%;background:#00a04f;transition:width .15s}
   #st{font-size:14px;min-height:22px;white-space:pre-wrap}
-  #log{background:#111;color:#0f0;font:12px/1.5 Consolas,monospace;height:320px;overflow:auto;padding:10px;border-radius:8px;display:none;margin-top:10px}
-  .tag{display:inline-block;background:#eef7f1;color:#00753a;border:1px solid #bfe3cf;border-radius:4px;padding:0 5px;font-size:12px;margin-right:6px}
+  #log{background:#111;color:#0f0;font:12px/1.5 Consolas,monospace;height:300px;overflow:auto;padding:10px;border-radius:8px;display:none;margin-top:10px}
+  .lang-toggle{position:fixed;top:16px;right:16px;z-index:999;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:#1e293b}
+  .lang-toggle:hover{background:#00a04f;color:#fff;border-color:#00a04f}
 </style>
 </head>
 <body>
-<a class="back" href="../../">← 返回工具列表</a>
-<h2>GalaxyRVR 火星车 · 主板固件烧录</h2>
-<p class="ver">Arduino UNO（ATmega328P）· CH340 串口 · 浏览器直刷，不用装 avrdude / Arduino IDE</p>
+<button class="lang-toggle" id="langToggle" onclick="toggleLang()">中文</button>
+<a class="back" href="../../" data-en="&larr; All flasher tools" data-zh="&larr; 烧录工具列表"></a>
+
+<h2 data-en="GalaxyRVR Firmware Update" data-zh="GalaxyRVR 固件烧录"></h2>
+<p class="ver" data-en="Update the main board firmware over USB from your browser." data-zh="用 USB 线在浏览器里给主板更新固件。"></p>
 
 <ol>
-  <li>用 <b>Chrome 或 Edge</b> 打开本页（Web Serial 必须 https 或 localhost）。</li>
-  <li>火星车通电，USB 线接<b>主板</b>；把扩展板上的拨动开关拨到 <b>Upload</b>。</li>
-  <li>关掉 Arduino IDE、串口监视器等占着串口的软件。</li>
-  <li>下方选择固件版本（<b>V2</b> 或 <b>V1</b>），点「连接并烧录」，弹窗里选 <b>USB-SERIAL CH340</b> 对应的串口。</li>
-  <li>进度到 100% 后，把拨动开关拨回 <b>Run</b>，重新上电即运行新固件。</li>
+  <li data-en="Open this page in <b>Chrome or Edge</b> on a computer." data-zh="在电脑上用 <b>Chrome 或 Edge</b> 打开本页。"></li>
+  <li data-en="Power on the rover, connect the USB cable to the <b>main board</b>, and set the switch on the expansion board to <b>Upload</b>." data-zh="火星车通电，USB 线接<b>主板</b>，把扩展板上的拨动开关拨到 <b>Upload</b>。"></li>
+  <li data-en="Close any other program that is using the serial port." data-zh="关掉其他正在占用串口的程序。"></li>
+  <li data-en="Pick a firmware version below, click <b>Connect &amp; Flash</b>, and choose the port of your board." data-zh="在下面选择固件版本，点 <b>连接并烧录</b>，在弹出的列表里选主板对应的串口。"></li>
+  <li data-en="When it finishes, set the switch back to <b>Run</b> and power the rover on again." data-zh="烧完后把拨动开关拨回 <b>Run</b>，重新上电。"></li>
 </ol>
-<p class="warn">失败排查：没有弹窗 → 确认用 Chrome/Edge 且本页是 https 或 localhost；提示握手失败 → 确认开关在 Upload、串口没被占用、CH340 驱动已装好（设备管理器里应看到 USB-SERIAL CH340）。</p>
 
-<label for="fw">选择固件版本</label>
+<p class="warn" data-en="No port dialog? Use Chrome or Edge, and open this page over https.&lt;br&gt;Cannot connect? Check that the switch is on Upload, close other serial programs, and make sure the USB serial driver is installed (on Windows, Device Manager should list <b>USB-SERIAL CH340</b>)."
+   data-zh="没有弹出串口列表？请确认用 Chrome 或 Edge，并且本页是通过 https 打开的。&lt;br&gt;连不上？确认开关在 Upload、关掉其他占用串口的程序，并装好 USB 串口驱动（Windows 在设备管理器里应看到 <b>USB-SERIAL CH340</b>）。"></p>
+
+<label for="fw" data-en="Firmware version" data-zh="固件版本"></label>
 <select id="fw"></select>
 <div class="info" id="fwinfo"></div>
 
-<button id="go">连接并烧录</button>
+<button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
 <div class="bar"><div id="bar"></div></div>
 <div id="st"></div>
 <div id="log"></div>
 
+<script>
+// ---- 语言：URL ?lang= 优先，否则跟随浏览器语言（与 sunfounder/download 同一套写法）----
+function getLang() {
+  var params = new URLSearchParams(window.location.search);
+  var urlLang = params.get("lang");
+  if (urlLang === "zh" || urlLang === "en") return urlLang;
+  var userLang = navigator.language || navigator.userLanguage || "en";
+  return userLang.toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+function toggleLang() {
+  var url = new URL(window.location);
+  url.searchParams.set("lang", getLang() === "zh" ? "en" : "zh");
+  window.location.href = url.toString();
+}
+var LANG = getLang();
+function T(en, zh) { return LANG === "zh" ? zh : en; }
+</script>
+
 <script type="module">
-// 只从具体模块入口 import：包的 index.js 会连带拉 Node 专用的 serialport，
-// 浏览器里解析不了裸包名，整页脚本会直接加载失败
 import { STK500 } from "../../vendor/webserial-flasher/stk500.js";
 import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/WebSerialTransport.js";
 
@@ -65,19 +86,18 @@ let LIST = [];
 
 async function loadList(){
   const resp = await fetch("./firmwares.json", { cache: "no-store" });
-  if (!resp.ok) throw new Error("固件清单读取失败 HTTP " + resp.status);
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
   const cfg = await resp.json();
   BOARD = cfg.board || {};
   LIST = cfg.firmwares || [];
-  if (!LIST.length) throw new Error("固件清单为空");
+  if (!LIST.length) throw new Error("empty firmware list");
   sel.innerHTML = "";
   for (const fw of LIST){
     const o = document.createElement("option");
     o.value = LIST.indexOf(fw);
-    const parts = ["v" + fw.version];
-    if (fw.family) parts.unshift(fw.family);
-    if (fw.date) parts.push("（" + fw.date + "）");
-    o.textContent = parts.join(" · ") + (fw.note ? " · " + fw.note : "");
+    const note = T(fw.note_en, fw.note_zh);
+    o.textContent = (fw.family ? fw.family + " · " : "") + fw.version
+      + (fw.date ? " (" + fw.date + ")" : "") + (note ? " · " + note : "");
     sel.appendChild(o);
   }
   showInfo();
@@ -86,13 +106,14 @@ async function loadList(){
 function showInfo(){
   const fw = LIST[+sel.value];
   if (!fw) return;
-  infoEl.textContent =
-    "大版本：" + (fw.family || "-") + "　固件版本：" + fw.version + (fw.date ? "（" + fw.date + "）" : "") + "\n"
-    + "目标板：" + (BOARD.name || "Arduino UNO") + "　芯片：" + (BOARD.chip || "atmega328p")
-    + "　签名：" + String(BOARD.signature || "1e950f").replace(/(..)(..)(..)/, "0x$1 0x$2 0x$3") + "\n"
-    + "窗口：" + (fw.file || "") + "\n"
-    + (fw.channel ? "通道：" + fw.channel + "\n" : "")
-    + (fw.note ? "说明：" + fw.note : "");
+  const channel = T(fw.channel_en, fw.channel_zh);
+  const note = T(fw.note_en, fw.note_zh);
+  const lines = [];
+  lines.push(T("Version: ", "版本：") + (fw.family ? fw.family + " · " : "") + fw.version
+    + (fw.date ? " (" + fw.date + ")" : "") + (channel ? " · " + channel : ""));
+  lines.push(T("Board: ", "目标板：") + (BOARD.name || "Arduino UNO"));
+  if (note) lines.push(T("Note: ", "说明：") + note);
+  infoEl.textContent = lines.join("\n");
 }
 sel.addEventListener("change", showInfo);
 
@@ -103,6 +124,8 @@ function hexToBytes(hex){
   return out;
 }
 
+function setStatus(text){ st.textContent = text; }
+
 go.addEventListener("click", async () => {
   go.disabled = true;
   bar.style.width = "0%";
@@ -112,14 +135,15 @@ go.addEventListener("click", async () => {
   let transport = null;
   try {
     const fw = LIST[+sel.value];
-    if (!fw) throw new Error("请先选择固件版本");
-    if (!navigator.serial) throw new Error("浏览器不支持 Web Serial，请用 Chrome/Edge（https 或 localhost）");
+    if (!fw) throw new Error(T("Select a firmware version first.", "请先选择固件版本。"));
+    if (!navigator.serial) throw new Error(T("This browser does not support Web Serial. Please use Chrome or Edge, and open this page over https.",
+      "此浏览器不支持 Web Serial，请用 Chrome 或 Edge，并通过 https 打开本页。"));
 
-    st.textContent = "① 读取固件文件…";
+    setStatus(T("Reading firmware file…", "读取固件文件…"));
     const resp = await fetch(fw.file, { cache: "no-store" });
-    if (!resp.ok) throw new Error("固件文件读取失败 HTTP " + resp.status + "：" + fw.file);
+    if (!resp.ok) throw new Error("HTTP " + resp.status + " " + fw.file);
     const hexText = await resp.text();
-    if (hexText.indexOf(":") !== 0) throw new Error("固件文件不是 Intel HEX 格式：" + fw.file);
+    if (hexText.indexOf(":") !== 0) throw new Error("bad firmware file: " + fw.file);
 
     const board = {
       name: BOARD.name || "Arduino UNO",
@@ -128,27 +152,24 @@ go.addEventListener("click", async () => {
       pageSize: BOARD.pageSize || 128,
       timeout: 600,
       flashSize: BOARD.flashSize || 32256,
-      // 复位由本页自己发：库里 setSignals 用的是 dtr/rts，与 Web Serial 的
-      // dataTerminalReady/requestToSend 不同名，交给它等于不复位
+      // 复位由本页自己发：库的 setSignals 传 {dtr,rts} 与 Web Serial 规范不同名，交给它等于不复位
       resetMethod: "none",
       resetDelayMs: 0,
     };
 
-    st.textContent = "② 等待选择串口…（若没弹窗请见上方排查）";
+    setStatus(T("Choose the serial port of your board in the dialog…", "请在弹窗里选择主板对应的串口…"));
     const port = await navigator.serial.requestPort();
     transport = new WebSerialTransport(port);
-    st.textContent = "③ 正在打开串口…";
+    setStatus(T("Opening the port…", "打开串口…"));
     await transport.open(board.baudRate);
 
     // Arduino 自动复位：DTR 拉低再放开，经 100nF 电容给 RESET 一个脉冲
-    st.textContent = "④ 复位进入 bootloader…";
+    setStatus(T("Resetting the board…", "复位主板…"));
     try {
       await port.setSignals({ dataTerminalReady: false, requestToSend: false });
       await sleep(120);
       await port.setSignals({ dataTerminalReady: true, requestToSend: true });
-    } catch (e) {
-      log("setSignals 不受支持，跳过 DTR 复位：" + e.message);
-    }
+    } catch (e) { log("setSignals unsupported: " + e.message); }
     await sleep(BOARD.resetDelayMs || 500);
 
     const stk = new STK500(transport, board, {
@@ -156,48 +177,43 @@ go.addEventListener("click", async () => {
       retry: { syncAttempts: 10, retryDelayMs: 250 },
     });
 
-    st.textContent = "⑤ 与 bootloader 握手…";
+    setStatus(T("Connecting to the board…", "连接主板…"));
     await stk.sync(10);
     await stk.sync(3);
-    bar.style.width = "10%";
-
-    st.textContent = "⑥ 识别芯片…";
-    const sig = await stk.verifySignature();
-    log("芯片签名：" + Array.from(sig || []).map(b => "0x" + b.toString(16).padStart(2, "0")).join(" "));
-    bar.style.width = "15%";
-
+    await stk.verifySignature();
     await stk.setOptions();
     await stk.enterProgrammingMode();
-    bar.style.width = "20%";
+    bar.style.width = "18%";
 
-    st.textContent = "⑦ 写入固件…0%";
+    setStatus(T("Writing firmware… 0%", "写入固件… 0%"));
     await stk.upload(hexText, (pct) => {
       const p = Math.round(pct);
-      bar.style.width = (20 + p * 0.55) + "%";
-      st.textContent = "⑦ 写入固件…" + p + "%";
+      bar.style.width = (18 + p * 0.57) + "%";
+      setStatus(T("Writing firmware… ", "写入固件… ") + p + "%");
     });
 
-    st.textContent = "⑧ 回读校验…0%";
+    setStatus(T("Verifying… 0%", "回读校验… 0%"));
     await stk.verify(hexText, (pct) => {
       const p = Math.round(pct);
-      bar.style.width = (75 + p * 0.20) + "%";
-      st.textContent = "⑧ 回读校验…" + p + "%";
+      bar.style.width = (75 + p * 0.2) + "%";
+      setStatus(T("Verifying… ", "回读校验… ") + p + "%");
     });
 
-    st.textContent = "⑨ 退出编程模式…";
+    setStatus(T("Finishing up…", "收尾…"));
     await stk.exitProgrammingMode();
     await transport.close();
     transport = null;
 
     bar.style.width = "100%";
-    st.textContent = "✅ 烧录完成！";
-    alert("✅ 烧录完成！\n\n"
-      + "固件：" + fw.family + "（v" + fw.version + "）\n"
-      + "① 把扩展板拨动开关拨回 Run\n"
-      + "② 重新上电\n"
-      + "③ 手机端用对应的遥控器连接：" + (fw.family === "V2" ? "Robo Pilot" : "SunFounder Controller APP"));
+    setStatus(T("✔ Done — firmware flashed.", "✔ 完成，固件已烧录。"));
+    alert(T(
+      "Firmware flashed successfully.\n\n" + (fw.family || "") + " · " + fw.version + "\n\n"
+        + "1. Set the switch back to Run\n2. Power the rover on again",
+      "固件烧录成功。\n\n" + (fw.family || "") + " · " + fw.version + "\n\n"
+        + "1. 把拨动开关拨回 Run\n2. 重新上电"
+    ));
   } catch (e) {
-    st.textContent = "❌ " + (e && e.message ? e.message : e);
+    setStatus(T("Failed: ", "失败：") + (e && e.message ? e.message : e));
     log(String(e && e.stack || e));
   } finally {
     if (transport) { try { await transport.close(); } catch (e) { /* ignore */ } }
@@ -205,7 +221,25 @@ go.addEventListener("click", async () => {
   }
 });
 
-loadList().catch(e => { st.textContent = "❌ " + e.message; log(String(e && e.stack || e)); });
+loadList().catch(e => { setStatus(T("Failed: ", "失败：") + e.message); log(String(e && e.stack || e)); });
+</script>
+
+<script>
+// 语言落地：填 data-en/data-zh 文案 + 切换按钮 + 把 lang 带给内部链接
+(function () {
+  document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
+  document.title = T("GalaxyRVR Firmware Update", "GalaxyRVR 固件烧录");
+  document.querySelectorAll("[data-en][data-zh]").forEach(function (el) {
+    el.innerHTML = LANG === "zh" ? el.getAttribute("data-zh") : el.getAttribute("data-en");
+  });
+  document.getElementById("langToggle").textContent = LANG === "zh" ? "EN" : "中文";
+  document.querySelectorAll("a[href]").forEach(function (a) {
+    var href = a.getAttribute("href");
+    if (href && !/^(https?:|javascript:|#)/.test(href)) {
+      a.href = href + (href.indexOf("?") === -1 ? "?" : "&") + "lang=" + LANG;
+    }
+  });
+})();
 </script>
 </body>
 </html>

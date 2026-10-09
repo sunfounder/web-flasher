@@ -16,8 +16,10 @@
       "family": "V2",
       "version": "2.0.0",
       "date": "2026-09-08",
-      "channel": "正式版",
-      "note": "Robo Pilot 遥控器 / 兼容 Mammoth Coding 图形化编程",
+      "channel_en": "Current release",
+      "channel_zh": "正式版",
+      "note_en": "For the Robo Pilot app and Mammoth Coding",
+      "note_zh": "配合 Robo Pilot 遥控器与 Mammoth Coding 图形化编程",
       "file": "firmwares/galaxy-rvr.ino.2.0.0.hex"
     },
     {
@@ -25,8 +27,10 @@
       "family": "V1",
       "version": "1.2.1",
       "date": "2026-04-09",
-      "channel": "旧版（保留兼容）",
-      "note": "配合 SunFounder Controller APP 使用；老用户机器沿用 V1 固件",
+      "channel_en": "Legacy",
+      "channel_zh": "旧版（保留兼容）",
+      "note_en": "For the SunFounder Controller app",
+      "note_zh": "配合 SunFounder Controller APP 使用",
       "file": "firmwares/galaxy-rvr.ino.1.2.1.hex"
     }
   ]
