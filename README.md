@@ -69,9 +69,9 @@ esptool --chip esp32s3 merge_bin --flash_mode dio --flash_freq 80m --flash_size 
 
 - 文案写在 `data-en` / `data-zh` 两个属性上，脚本按语言 `innerHTML` 落地；
 - `getLang()`：URL 的 `?lang=zh|en` 优先，没有就 `navigator.language`（`zh*` → 中文，其余 → 英文）；
-- 右上角语言按钮只改 URL 的 `lang` 参数并刷新，链接把 `lang` 继续带下去（返回上一页不丢语言）；
+- 右上角语言按钮只改 URL 的 `lang` 参数并刷新；客户页之间互相跳转时要把 `lang` 带下去；
 - `tools.json` 里 `name_en` / `target_en` / `desc_en` 缺省就回落到中文，索引页两种语言都能显示；
-- 固件清单里文案字段用 `note_en`/`note_zh`、`channel_en`/`channel_zh`；
+- 固件清单里文案字段用 `note_en`/`note_zh`；
 - JS 里跑出来的状态文字（"写入固件… 42%"、弹窗）用页面里的 `T(en, zh)` 取，不能只写一份。
 
 ## 新增一个 AVR（Arduino UNO）工具
@@ -99,10 +99,9 @@ import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/Web
     "resetDelayMs": 500
   },
   "firmwares": [
-    { "id": "xxx-v1.0.0", "family": "V2", "version": "1.0.0", "date": "2026-01-01",
+    { "id": "xxx-1.0.0", "version": "1.0.0", "date": "2026-01-01",
       "note_en": "For the XYZ app", "note_zh": "配合 XYZ APP 使用",
-      "channel_en": "Current release", "channel_zh": "正式版",
-      "file": "firmwares/xxx.hex" }
+      "file": "firmwares/xxx-1.0.0.hex" }
   ]
 }
 ```
@@ -115,9 +114,12 @@ import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/Web
 - DTR 复位要**自己发**：库的 `WebSerialTransport.setSignals()` 传的是 `{dtr,rts}`，
   而 Web Serial 规范要的是 `{dataTerminalReady,requestToSend}`，交给它等于没复位（页面里 `resetMethod:'none'` + 自己发脉冲）。
 - 板上有 Upload/Run 拨动开关的（如 GalaxyRVR 扩展板），页面说明里要写清楚。
+- 客户页的固件下拉行**只写版本号和日期**（如 `2.0.0 (2026-09-08)`），不要塞产品代次之类的标签；
+  该选哪个版本、连不上、占用串口这些排查一律放页面下方的 FAQ。
+- 工具页是**相对独立**的：不放「返回工具列表」链接。
 
 ## 现有工具
 | 工具 | 版本 | 目标设备 |
 | :--: | :--: | :-- |
 | 思天 QC 工具 | 1.0.4 | ESP32-S3（LilyGO T-Display-S3，16MB） |
-| GalaxyRVR 火星车 | V2 · 2.0.0 / V1 · 1.2.1 | Arduino UNO（ATmega328P，CH340） |
+| GalaxyRVR 火星车 | 2.0.0 / 1.2.1 / 1.1.0 | Arduino UNO（ATmega328P，CH340） |

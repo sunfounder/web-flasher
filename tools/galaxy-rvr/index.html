@@ -7,54 +7,81 @@
 <link rel="icon" type="image/png" href="../../favicon.png">
 <link rel="apple-touch-icon" href="../../favicon.png">
 <style>
-  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:640px;margin:32px auto;padding:0 16px;color:#222;line-height:1.5}
-  a.back{font-size:14px;color:#00a04f;text-decoration:none}
-  h2{margin:12px 0 6px}
-  .ver{color:#666;font-size:14px;margin-top:0}
-  ol{line-height:1.9;padding-left:22px}
-  .warn{color:#a11;font-size:13px;line-height:1.7}
-  label{font-weight:bold;display:block;margin:18px 0 4px}
-  select{font-size:16px;padding:8px;width:100%;box-sizing:border-box;border:1px solid #bbb;border-radius:6px}
-  .info{background:#f4f6f8;border-radius:8px;padding:8px 12px;font-size:13px;color:#333;margin-top:8px;line-height:1.7;white-space:pre-wrap}
-  button.go{font-size:17px;padding:12px 22px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:16px}
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:640px;margin:40px auto;padding:0 16px;color:#222;line-height:1.5}
+  h2{margin:0 0 18px}
+  h3{margin:34px 0 10px;font-size:17px}
+  ol{line-height:1.6;padding-left:24px;margin:0}
+  ol > li{margin-bottom:16px}
+  select{display:block;font-size:16px;padding:8px;width:100%;max-width:360px;box-sizing:border-box;border:1px solid #bbb;border-radius:6px;margin-top:8px}
+  button.go{display:block;font-size:17px;padding:12px 24px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:10px}
   button.go:disabled{opacity:.5;cursor:not-allowed}
-  .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:16px 0}
+  .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:14px 0 0;max-width:420px}
   #bar{height:100%;width:0%;background:#00a04f;transition:width .15s}
-  #st{font-size:14px;min-height:22px;white-space:pre-wrap}
-  #log{background:#111;color:#0f0;font:12px/1.5 Consolas,monospace;height:300px;overflow:auto;padding:10px;border-radius:8px;display:none;margin-top:10px}
+  #st{font-size:14px;min-height:20px;white-space:pre-wrap;margin-top:8px}
+  #log{background:#111;color:#0f0;font:12px/1.5 Consolas,monospace;height:280px;overflow:auto;padding:10px;border-radius:8px;display:none;margin-top:10px}
+  .notice{display:none;color:#a11;font-size:13px;margin-top:10px}
+  details{border-top:1px solid #e6e9ec;padding:10px 0}
+  details summary{cursor:pointer;font-weight:600;font-size:14px}
+  details p{color:#555;font-size:14px;margin:8px 0 0;line-height:1.7}
+  details p b{color:#333}
   .lang-toggle{position:fixed;top:16px;right:16px;z-index:999;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:#1e293b}
   .lang-toggle:hover{background:#00a04f;color:#fff;border-color:#00a04f}
 </style>
 </head>
 <body>
 <button class="lang-toggle" id="langToggle" onclick="toggleLang()">中文</button>
-<a class="back" href="../../" data-en="&larr; All flasher tools" data-zh="&larr; 烧录工具列表"></a>
 
 <h2 data-en="GalaxyRVR Firmware Update" data-zh="GalaxyRVR 固件烧录"></h2>
-<p class="ver" data-en="Update the main board firmware over USB from your browser." data-zh="用 USB 线在浏览器里给主板更新固件。"></p>
 
 <ol>
-  <li data-en="Open this page in <b>Chrome or Edge</b> on a computer." data-zh="在电脑上用 <b>Chrome 或 Edge</b> 打开本页。"></li>
-  <li data-en="Power on the rover, connect the USB cable to the <b>main board</b>, and set the switch on the expansion board to <b>Upload</b>." data-zh="火星车通电，USB 线接<b>主板</b>，把扩展板上的拨动开关拨到 <b>Upload</b>。"></li>
-  <li data-en="Close any other program that is using the serial port." data-zh="关掉其他正在占用串口的程序。"></li>
-  <li data-en="Pick a firmware version below, click <b>Connect &amp; Flash</b>, and choose the port of your board." data-zh="在下面选择固件版本，点 <b>连接并烧录</b>，在弹出的列表里选主板对应的串口。"></li>
-  <li data-en="When it finishes, set the switch back to <b>Run</b> and power the rover on again." data-zh="烧完后把拨动开关拨回 <b>Run</b>，重新上电。"></li>
+  <li data-en="Power on the rover, connect the USB cable to the <b>main board</b>, and set the switch on the expansion board to <b>Upload</b>."
+      data-zh="火星车通电，USB 线接<b>主板</b>，把扩展板上的拨动开关拨到 <b>Upload</b>。"></li>
+
+  <li>
+    <span data-en="Select the firmware version." data-zh="选择固件版本。"></span>
+    <select id="fw"></select>
+  </li>
+
+  <li>
+    <span data-en="Click <b>Connect &amp; Flash</b> and choose the port of your board." data-zh="点 <b>连接并烧录</b>，在弹出的列表里选主板对应的串口。"></span>
+    <button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
+    <p class="notice" id="notice" data-en="This page needs Web Serial. Please open it in Chrome or Edge on a computer." data-zh="本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"></p>
+    <div class="bar"><div id="bar"></div></div>
+    <div id="st"></div>
+    <div id="log"></div>
+  </li>
+
+  <li data-en="When it finishes, set the switch back to <b>Run</b> and power the rover on again."
+      data-zh="烧完后把拨动开关拨回 <b>Run</b>，重新上电。"></li>
 </ol>
 
-<p class="warn" data-en="No port dialog? Use Chrome or Edge, and open this page over https.&lt;br&gt;Cannot connect? Check that the switch is on Upload, close other serial programs, and make sure the USB serial driver is installed (on Windows, Device Manager should list <b>USB-SERIAL CH340</b>)."
-   data-zh="没有弹出串口列表？请确认用 Chrome 或 Edge，并且本页是通过 https 打开的。&lt;br&gt;连不上？确认开关在 Upload、关掉其他占用串口的程序，并装好 USB 串口驱动（Windows 在设备管理器里应看到 <b>USB-SERIAL CH340</b>）。"></p>
+<h3 data-en="FAQ" data-zh="常见问题"></h3>
 
-<label for="fw" data-en="Firmware version" data-zh="固件版本"></label>
-<select id="fw"></select>
-<div class="info" id="fwinfo"></div>
+<details>
+  <summary data-en="Which firmware version should I choose?" data-zh="我该选哪个固件版本？"></summary>
+  <p data-en="<b>1.1.0</b> is for the first generation GalaxyRVR. <b>1.2.1</b> and <b>2.0.0</b> are for the current generation &mdash; take <b>2.0.0</b> unless you need an older version. If you are not sure which rover you have, check the label on the box or contact us."
+     data-zh="<b>1.1.0</b> 供第一代 GalaxyRVR 使用；<b>1.2.1</b> 和 <b>2.0.0</b> 供现在的版本使用——除非需要旧版本，否则选 <b>2.0.0</b>。分不清自己手上是哪一代，看包装盒上的标签，或联系我们。"></p>
+</details>
 
-<button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
-<div class="bar"><div id="bar"></div></div>
-<div id="st"></div>
-<div id="log"></div>
+<details>
+  <summary data-en="No port dialog appears" data-zh="没有弹出串口列表"></summary>
+  <p data-en="Use <b>Chrome</b> or <b>Edge</b> on a computer, and make sure this page is opened over <b>https</b>."
+     data-zh="请在电脑上使用 <b>Chrome</b> 或 <b>Edge</b>，并确认本页是通过 <b>https</b> 打开的。"></p>
+</details>
+
+<details>
+  <summary data-en="Cannot connect to the board" data-zh="连接不上主板"></summary>
+  <p data-en="Close other programs that are using the serial port (Arduino IDE, serial monitor, another browser tab). Check that the switch is still on <b>Upload</b>, and that the USB serial driver is installed &mdash; on Windows, Device Manager should list <b>USB-SERIAL CH340</b>."
+     data-zh="关掉其他正在占用串口的程序（Arduino IDE、串口监视器、另一个浏览器标签页）。确认拨动开关仍在 <b>Upload</b>，并装好 USB 串口驱动——Windows 在设备管理器里应看到 <b>USB-SERIAL CH340</b>。"></p>
+</details>
+
+<details>
+  <summary data-en="The flash failed &mdash; can I just try again?" data-zh="烧录失败了，能重试吗？"></summary>
+  <p data-en="Yes. Unplug the USB cable, plug it back in, set the switch to <b>Upload</b> and run it again. Re-flashing does not damage the rover."
+     data-zh="可以。拔下 USB 再插上，把开关拨到 <b>Upload</b>，重新点一次即可；重复烧录不会损坏火星车。"></p>
+</details>
 
 <script>
-// ---- 语言：URL ?lang= 优先，否则跟随浏览器语言（与 sunfounder/download 同一套写法）----
 function getLang() {
   var params = new URLSearchParams(window.location.search);
   var urlLang = params.get("lang");
@@ -76,7 +103,7 @@ import { STK500 } from "../../vendor/webserial-flasher/stk500.js";
 import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/WebSerialTransport.js";
 
 const st = el("st"), bar = el("bar"), logEl = el("log");
-const sel = el("fw"), infoEl = el("fwinfo"), go = el("go");
+const sel = el("fw"), go = el("go"), notice = el("notice");
 function el(id){ return document.getElementById(id); }
 function log(s){ logEl.style.display="block"; const d=document.createElement("div"); d.textContent=s; logEl.appendChild(d); logEl.scrollTop=1e9; }
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -95,27 +122,10 @@ async function loadList(){
   for (const fw of LIST){
     const o = document.createElement("option");
     o.value = LIST.indexOf(fw);
-    const note = T(fw.note_en, fw.note_zh);
-    o.textContent = (fw.family ? fw.family + " · " : "") + fw.version
-      + (fw.date ? " (" + fw.date + ")" : "") + (note ? " · " + note : "");
+    o.textContent = fw.version + (fw.date ? " (" + fw.date + ")" : "");
     sel.appendChild(o);
   }
-  showInfo();
 }
-
-function showInfo(){
-  const fw = LIST[+sel.value];
-  if (!fw) return;
-  const channel = T(fw.channel_en, fw.channel_zh);
-  const note = T(fw.note_en, fw.note_zh);
-  const lines = [];
-  lines.push(T("Version: ", "版本：") + (fw.family ? fw.family + " · " : "") + fw.version
-    + (fw.date ? " (" + fw.date + ")" : "") + (channel ? " · " + channel : ""));
-  lines.push(T("Board: ", "目标板：") + (BOARD.name || "Arduino UNO"));
-  if (note) lines.push(T("Note: ", "说明：") + note);
-  infoEl.textContent = lines.join("\n");
-}
-sel.addEventListener("change", showInfo);
 
 function hexToBytes(hex){
   const s = String(hex || "").replace(/[^0-9a-fA-F]/g, "");
@@ -123,8 +133,6 @@ function hexToBytes(hex){
   for (let i = 0; i < out.length; i++) out[i] = parseInt(s.substr(i * 2, 2), 16);
   return out;
 }
-
-function setStatus(text){ st.textContent = text; }
 
 go.addEventListener("click", async () => {
   go.disabled = true;
@@ -136,10 +144,10 @@ go.addEventListener("click", async () => {
   try {
     const fw = LIST[+sel.value];
     if (!fw) throw new Error(T("Select a firmware version first.", "请先选择固件版本。"));
-    if (!navigator.serial) throw new Error(T("This browser does not support Web Serial. Please use Chrome or Edge, and open this page over https.",
-      "此浏览器不支持 Web Serial，请用 Chrome 或 Edge，并通过 https 打开本页。"));
+    if (!navigator.serial) throw new Error(T("This page needs Web Serial. Please open it in Chrome or Edge on a computer.",
+      "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"));
 
-    setStatus(T("Reading firmware file…", "读取固件文件…"));
+    st.textContent = T("Reading firmware file…", "读取固件文件…");
     const resp = await fetch(fw.file, { cache: "no-store" });
     if (!resp.ok) throw new Error("HTTP " + resp.status + " " + fw.file);
     const hexText = await resp.text();
@@ -157,14 +165,14 @@ go.addEventListener("click", async () => {
       resetDelayMs: 0,
     };
 
-    setStatus(T("Choose the serial port of your board in the dialog…", "请在弹窗里选择主板对应的串口…"));
+    st.textContent = T("Choose the serial port of your board in the dialog…", "请在弹窗里选择主板对应的串口…");
     const port = await navigator.serial.requestPort();
     transport = new WebSerialTransport(port);
-    setStatus(T("Opening the port…", "打开串口…"));
+    st.textContent = T("Opening the port…", "打开串口…");
     await transport.open(board.baudRate);
 
     // Arduino 自动复位：DTR 拉低再放开，经 100nF 电容给 RESET 一个脉冲
-    setStatus(T("Resetting the board…", "复位主板…"));
+    st.textContent = T("Resetting the board…", "复位主板…");
     try {
       await port.setSignals({ dataTerminalReady: false, requestToSend: false });
       await sleep(120);
@@ -177,7 +185,7 @@ go.addEventListener("click", async () => {
       retry: { syncAttempts: 10, retryDelayMs: 250 },
     });
 
-    setStatus(T("Connecting to the board…", "连接主板…"));
+    st.textContent = T("Connecting to the board…", "连接主板…");
     await stk.sync(10);
     await stk.sync(3);
     await stk.verifySignature();
@@ -185,35 +193,35 @@ go.addEventListener("click", async () => {
     await stk.enterProgrammingMode();
     bar.style.width = "18%";
 
-    setStatus(T("Writing firmware… 0%", "写入固件… 0%"));
+    st.textContent = T("Writing firmware… 0%", "写入固件… 0%");
     await stk.upload(hexText, (pct) => {
       const p = Math.round(pct);
       bar.style.width = (18 + p * 0.57) + "%";
-      setStatus(T("Writing firmware… ", "写入固件… ") + p + "%");
+      st.textContent = T("Writing firmware… ", "写入固件… ") + p + "%";
     });
 
-    setStatus(T("Verifying… 0%", "回读校验… 0%"));
+    st.textContent = T("Verifying… 0%", "回读校验… 0%");
     await stk.verify(hexText, (pct) => {
       const p = Math.round(pct);
       bar.style.width = (75 + p * 0.2) + "%";
-      setStatus(T("Verifying… ", "回读校验… ") + p + "%");
+      st.textContent = T("Verifying… ", "回读校验… ") + p + "%";
     });
 
-    setStatus(T("Finishing up…", "收尾…"));
+    st.textContent = T("Finishing up…", "收尾…");
     await stk.exitProgrammingMode();
     await transport.close();
     transport = null;
 
     bar.style.width = "100%";
-    setStatus(T("✔ Done — firmware flashed.", "✔ 完成，固件已烧录。"));
+    st.textContent = T("✔ Done — firmware flashed.", "✔ 完成，固件已烧录。");
     alert(T(
-      "Firmware flashed successfully.\n\n" + (fw.family || "") + " · " + fw.version + "\n\n"
+      "Firmware flashed successfully.\n\nVersion " + fw.version + "\n\n"
         + "1. Set the switch back to Run\n2. Power the rover on again",
-      "固件烧录成功。\n\n" + (fw.family || "") + " · " + fw.version + "\n\n"
+      "固件烧录成功。\n\n版本 " + fw.version + "\n\n"
         + "1. 把拨动开关拨回 Run\n2. 重新上电"
     ));
   } catch (e) {
-    setStatus(T("Failed: ", "失败：") + (e && e.message ? e.message : e));
+    st.textContent = T("Failed: ", "失败：") + (e && e.message ? e.message : e);
     log(String(e && e.stack || e));
   } finally {
     if (transport) { try { await transport.close(); } catch (e) { /* ignore */ } }
@@ -221,11 +229,11 @@ go.addEventListener("click", async () => {
   }
 });
 
-loadList().catch(e => { setStatus(T("Failed: ", "失败：") + e.message); log(String(e && e.stack || e)); });
+loadList().catch(e => { st.textContent = T("Failed: ", "失败：") + e.message; log(String(e && e.stack || e)); });
 </script>
 
 <script>
-// 语言落地：填 data-en/data-zh 文案 + 切换按钮 + 把 lang 带给内部链接
+// 语言落地 + 打开页面就检查 Web Serial 支持情况
 (function () {
   document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
   document.title = T("GalaxyRVR Firmware Update", "GalaxyRVR 固件烧录");
@@ -233,12 +241,14 @@ loadList().catch(e => { setStatus(T("Failed: ", "失败：") + e.message); log(S
     el.innerHTML = LANG === "zh" ? el.getAttribute("data-zh") : el.getAttribute("data-en");
   });
   document.getElementById("langToggle").textContent = LANG === "zh" ? "EN" : "中文";
-  document.querySelectorAll("a[href]").forEach(function (a) {
-    var href = a.getAttribute("href");
-    if (href && !/^(https?:|javascript:|#)/.test(href)) {
-      a.href = href + (href.indexOf("?") === -1 ? "?" : "&") + "lang=" + LANG;
-    }
-  });
+
+  if (!navigator.serial) {
+    var msg = T("This page needs the Web Serial API. Please open it in Chrome or Edge on a computer.",
+                "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。");
+    document.getElementById("go").disabled = true;
+    document.getElementById("notice").style.display = "block";
+    alert(msg);
+  }
 })();
 </script>
 </body>
