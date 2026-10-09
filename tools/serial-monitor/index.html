@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Serial Monitor</title>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<link rel="apple-touch-icon" href="../../favicon.png">
+<style>
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:760px;margin:40px auto;padding:0 16px;color:#222;line-height:1.5}
+  h2{margin:0 0 6px}
+  .sub{color:#666;font-size:14px;margin:0 0 18px}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
+  select,input[type=text]{font-size:15px;padding:7px 9px;border:1px solid #bbb;border-radius:6px;box-sizing:border-box}
+  select{min-width:120px}
+  button{font-size:15px;padding:8px 16px;border:0;border-radius:7px;cursor:pointer;background:#eef1f4;color:#223}
+  button.primary{background:#00a04f;color:#fff}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  label.chk{font-size:14px;color:#333;display:inline-flex;align-items:center;gap:5px;user-select:none}
+  #stat{font-size:13px;color:#777;margin-left:auto}
+  #status{font-size:13px;color:#a11;min-height:18px;margin-bottom:8px}
+  #out{background:#111;color:#d8e0d8;font:13px/1.55 Consolas,"Courier New",monospace;height:420px;overflow:auto;padding:10px 12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;margin:0}
+  #tx{flex:1;min-width:180px}
+  .actions{margin-top:12px}
+  details{border-top:1px solid #e6e9ec;padding:10px 0}
+  details summary{cursor:pointer;font-weight:600;font-size:14px}
+  details p{color:#555;font-size:14px;margin:8px 0 0;line-height:1.7}
+  details p b{color:#333}
+  h3{margin:30px 0 10px;font-size:17px}
+  .lang-toggle{position:fixed;top:16px;right:16px;z-index:999;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:#1e293b;line-height:1.4}
+  .lang-toggle:hover{background:#00a04f;color:#fff;border-color:#00a04f}
+</style>
+</head>
+<body>
+<button class="lang-toggle" id="langToggle" onclick="toggleLang()">中文</button>
+
+<h2 data-en="Serial Monitor" data-zh="串口监视器"></h2>
+<p class="sub" data-en="Read and send serial data from your browser." data-zh="在浏览器里收发串口数据。"></p>
+
+<div class="row">
+  <select id="baud">
+    <option value="9600">9600</option>
+    <option value="19200">19200</option>
+    <option value="38400">38400</option>
+    <option value="57600">57600</option>
+    <option value="115200" selected>115200</option>
+    <option value="230400">230400</option>
+    <option value="460800">460800</option>
+    <option value="921600">921600</option>
+  </select>
+  <button class="primary" id="connect" data-en="Connect" data-zh="连接"></button>
+</div>
+
+<div class="row">
+  <label class="chk"><input type="checkbox" id="hexView"> <span data-en="Hex" data-zh="十六进制"></span></label>
+  <label class="chk"><input type="checkbox" id="ts"> <span data-en="Timestamps" data-zh="时间戳"></span></label>
+  <label class="chk"><input type="checkbox" id="auto" checked> <span data-en="Autoscroll" data-zh="自动滚动"></span></label>
+  <span id="stat"></span>
+</div>
+
+<div id="status"></div>
+<pre id="out"></pre>
+
+<div class="row" style="margin-top:12px">
+  <input type="text" id="tx" autocomplete="off">
+  <select id="eol">
+    <option value="">No line ending</option>
+    <option value="10" selected>Newline</option>
+    <option value="13">Carriage return</option>
+    <option value="13,10">Both NL &amp; CR</option>
+  </select>
+  <button id="send" data-en="Send" data-zh="发送"></button>
+</div>
+
+<div class="row actions">
+  <button id="save" data-en="Save log" data-zh="保存日志"></button>
+  <button id="clear" data-en="Clear" data-zh="清空"></button>
+</div>
+
+<h3 data-en="Notes" data-zh="说明"></h3>
+
+<details>
+  <summary data-en="The board restarts when I open the port" data-zh="打开串口后板子会重启"></summary>
+  <p data-en="Normal. Opening a serial port pulls the DTR line, which resets most Arduino boards &mdash; the startup log you see right after connecting is that reset." data-zh="这是正常的。打开串口会拉动 DTR 信号，绝大多数 Arduino 板子因此复位——刚连上就看到的那段启动日志就是这次复位。"></p>
+</details>
+
+<details>
+  <summary data-en="Nothing shows up, or it is garbled" data-zh="没有数据显示，或者全是乱码"></summary>
+  <p data-en="Check the <b>baud rate</b> matches the firmware. GalaxyRVR prints its log at <b>115200</b>. If the data is a binary protocol instead of text, switch on <b>Hex</b>." data-zh="先确认<b>波特率</b>和固件一致。火星车的日志是 <b>115200</b>。如果设备发的是二进制协议而不是文本，把 <b>十六进制</b> 打开看。"></p>
+</details>
+
+<details>
+  <summary data-en="How do I check the firmware version after flashing?" data-zh="烧完固件怎么核对版本？"></summary>
+  <p data-en="Connect at 115200 and press the reset button on the board (or just reconnect). The first line is <b>GalaxyRVR version X.Y.Z</b>, followed by <b>Initialzing...</b> and <b>Okie!</b>." data-zh="用 115200 连接，按一下板子上的复位键（或重新连接）。第一行就是 <b>GalaxyRVR version X.Y.Z</b>，接着是 <b>Initialzing...</b> 和 <b>Okie!</b>。"></p>
+</details>
+
+<details>
+  <summary data-en="Cannot open the port" data-zh="串口打不开"></summary>
+  <p data-en="Only one program can hold a serial port. Close Arduino IDE, other serial monitors, other browser tabs, and make sure the flasher page is not still connected." data-zh="一个串口同时只能被一个程序占用。关掉 Arduino IDE、其他串口工具、其他浏览器标签页，并确认烧录页面已经断开。"></p>
+</details>
+
+<script>
+function getLang() {
+  var params = new URLSearchParams(window.location.search);
+  var urlLang = params.get("lang");
+  if (urlLang === "zh" || urlLang === "en") return urlLang;
+  var userLang = navigator.language || navigator.userLanguage || "en";
+  return userLang.toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+function toggleLang() {
+  var url = new URL(window.location);
+  url.searchParams.set("lang", getLang() === "zh" ? "en" : "zh");
+  window.location.href = url.toString();
+}
+var LANG = getLang();
+function T(en, zh) { return LANG === "zh" ? zh : en; }
+</script>
+
+<script type="module">
+const out = el("out"), statusEl = el("status"), statEl = el("stat");
+const baudSel = el("baud"), connBtn = el("connect");
+const hexChk = el("hexView"), tsChk = el("ts"), autoChk = el("auto");
+const txEl = el("tx"), eolSel = el("eol"), sendBtn = el("send");
+const saveBtn = el("save"), clearBtn = el("clear");
+function el(id){ return document.getElementById(id); }
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+const MAX_BYTES = 256 * 1024;
+
+let port = null, reader = null, writer = null;
+let connected = false, reading = false;
+let chunks = [];            // { t: number(ms), b: Uint8Array }
+let buffered = 0;
+let rxBytes = 0, txBytes = 0;
+let hexCol = 0, hasContent = false;
+let dec = new TextDecoder("utf-8", { fatal: false });
+
+function hex2(b){ return b.toString(16).padStart(2, "0"); }
+function stamp(t){
+  const d = new Date(t);
+  const p = (n, w) => String(n).padStart(w || 2, "0");
+  return "[" + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()) + "." + p(d.getMilliseconds(), 3) + "]";
+}
+function size(n){ return n < 1024 ? n + " B" : (n / 1024).toFixed(1) + " KB"; }
+function updateStat(){ statEl.textContent = "RX " + size(rxBytes) + "  ·  TX " + size(txBytes); }
+
+function append(text){
+  if (!text) return;
+  out.appendChild(document.createTextNode(text));
+  if (autoChk.checked) out.scrollTop = out.scrollHeight;
+}
+
+function hexAppend(bytes){
+  let s = "";
+  for (let i = 0; i < bytes.length; i++){
+    if (hexCol === 0){ if (hasContent) s += "\n"; }
+    else s += " ";
+    s += hex2(bytes[i]);
+    hexCol = (hexCol + 1) % 16;
+    hasContent = true;
+  }
+  return s;
+}
+
+function renderChunk(c){
+  let s = "";
+  if (tsChk.checked) s += stamp(c.t) + " ";
+  s += hexChk.checked ? hexAppend(c.b) : dec.decode(c.b, { stream: true });
+  append(s);
+}
+
+function rebuild(){
+  out.textContent = "";
+  hexCol = 0; hasContent = false;
+  dec = new TextDecoder("utf-8", { fatal: false });
+  for (const c of chunks) renderChunk(c);
+  if (!hexChk.checked) append(dec.decode());
+  if (autoChk.checked) out.scrollTop = out.scrollHeight;
+}
+
+function plainText(){
+  // 保存/复制用：不受当前视图影响，给纯文本（十六进制视图下给 hex dump）
+  const d = new TextDecoder("utf-8", { fatal: false });
+  let s = "";
+  if (hexChk.checked){
+    let col = 0;
+    for (const c of chunks){
+      if (tsChk.checked) s += stamp(c.t) + " ";
+      for (let i = 0; i < c.b.length; i++){
+        if (col === 0 && s.length) s += "\n";
+        else if (col > 0) s += " ";
+        s += hex2(c.b[i]);
+        col = (col + 1) % 16;
+      }
+    }
+  } else {
+    for (const c of chunks){
+      if (tsChk.checked) s += stamp(c.t) + " ";
+      s += d.decode(c.b, { stream: true });
+    }
+    s += d.decode();
+  }
+  return s;
+}
+
+function onData(bytes){
+  const c = { t: Date.now(), b: bytes };
+  chunks.push(c);
+  buffered += bytes.length;
+  rxBytes += bytes.length;
+  while (buffered > MAX_BYTES && chunks.length > 1){
+    buffered -= chunks[0].b.length;
+    chunks.shift();
+  }
+  renderChunk(c);
+  updateStat();
+}
+
+async function readLoop(){
+  reading = true;
+  while (reading && port){
+    let r;
+    try { r = port.readable.getReader(); } catch (e) { break; }
+    reader = r;
+    try {
+      while (reading){
+        const res = await r.read();
+        if (res.done) break;
+        if (res.value && res.value.length) onData(res.value);
+      }
+    } catch (e) {
+      if (reading) statusEl.textContent = String(e && e.message ? e.message : e);
+    } finally {
+      try { r.releaseLock(); } catch (e) {}
+      reader = null;
+    }
+    break;
+  }
+}
+
+function updateConnUI(){
+  connBtn.textContent = connected ? T("Disconnect", "断开") : T("Connect", "连接");
+  baudSel.disabled = connected;
+  sendBtn.disabled = !connected;
+}
+
+async function connect(){
+  if (!navigator.serial) throw new Error(T("This page needs Chrome or Edge on a computer.", "本页需要 Chrome 或 Edge（电脑上打开）。"));
+  statusEl.textContent = "";
+  port = await navigator.serial.requestPort();
+  await port.open({ baudRate: Number(baudSel.value) });
+  writer = port.writable.getWriter();
+  connected = true;
+  updateConnUI();
+  readLoop();
+}
+
+async function disconnect(){
+  reading = false;
+  connected = false;
+  updateConnUI();
+  if (reader){ try { await reader.cancel(); } catch (e) {} }
+  await sleep(60);
+  if (reader){ try { reader.releaseLock(); } catch (e) {} }
+  if (writer){ try { writer.releaseLock(); } catch (e) {} }
+  if (port){ try { await port.close(); } catch (e) {} }
+  reader = null; writer = null; port = null;
+}
+
+connBtn.addEventListener("click", async () => {
+  connBtn.disabled = true;
+  try {
+    if (connected) await disconnect(); else await connect();
+  } catch (e) {
+    statusEl.textContent = T("Failed: ", "失败：") + (e && e.message ? e.message : e);
+    try { await disconnect(); } catch (e2) {}
+  } finally {
+    connBtn.disabled = false;
+  }
+});
+
+async function send(){
+  if (!connected || !writer) return;
+  const txt = txEl.value;
+  const eol = eolSel.value ? new Uint8Array(eolSel.value.split(",").map(Number)) : new Uint8Array(0);
+  const body = new TextEncoder().encode(txt);
+  const buf = new Uint8Array(body.length + eol.length);
+  buf.set(body, 0); buf.set(eol, body.length);
+  try {
+    await writer.write(buf);
+    txBytes += buf.length;
+    updateStat();
+    txEl.value = "";
+  } catch (e) {
+    statusEl.textContent = T("Send failed: ", "发送失败：") + (e && e.message ? e.message : e);
+  }
+}
+sendBtn.addEventListener("click", send);
+txEl.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); send(); } });
+
+hexChk.addEventListener("change", rebuild);
+tsChk.addEventListener("change", rebuild);
+clearBtn.addEventListener("click", () => { chunks = []; buffered = 0; rxBytes = 0; txBytes = 0; rebuild(); updateStat(); });
+saveBtn.addEventListener("click", () => {
+  const blob = new Blob([plainText()], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "serial-log-" + new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19) + ".txt";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+});
+
+updateConnUI();
+updateStat();
+</script>
+
+<script>
+(function () {
+  document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
+  document.title = T("Serial Monitor", "串口监视器");
+  document.querySelectorAll("[data-en][data-zh]").forEach(function (el) {
+    el.innerHTML = LANG === "zh" ? el.getAttribute("data-zh") : el.getAttribute("data-en");
+  });
+  document.getElementById("langToggle").textContent = LANG === "zh" ? "EN" : "中文";
+  document.getElementById("tx").placeholder = T("Type and press Enter to send", "输入内容，回车发送");
+  if (!navigator.serial) {
+    document.getElementById("connect").disabled = true;
+    document.getElementById("status").textContent = T("This page needs the Web Serial API. Please open it in Chrome or Edge on a computer.",
+      "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。");
+  }
+})();
+</script>
+</body>
+</html>

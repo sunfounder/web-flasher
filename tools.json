@@ -12,6 +12,16 @@
       "path": "tools/galaxy-rvr/"
     },
     {
+      "id": "serial-monitor",
+      "name": "串口监视器",
+      "name_en": "Serial Monitor",
+      "target": "任意 USB 串口设备",
+      "target_en": "Any USB serial device",
+      "desc": "浏览器里收发串口数据：十六进制视图、时间戳、保存日志",
+      "desc_en": "Read and send serial data in the browser: hex view, timestamps, save log",
+      "path": "tools/serial-monitor/"
+    },
+    {
       "id": "qc-tool",
       "name": "思天 QC 工具",
       "name_en": "QC Tool",

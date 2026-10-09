@@ -118,8 +118,21 @@ import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/Web
   该选哪个版本、连不上、占用串口这些排查一律放页面下方的 FAQ。
 - 工具页是**相对独立**的：不放「返回工具列表」链接。
 
+## 串口监视器（tools/serial-monitor/）
+
+不带固件的工具，页面自己就是全部内容（没有 `firmwares.json`，`tools.json` 里也不用写 `version`）。
+功能：连串口收发数据、十六进制视图、时间戳、自动滚动、保存日志；波特率默认 **115200**（火星车固件的日志波特率）。
+
+几个实现点：
+
+- 文本视图用 **流式 `TextDecoder`**（`decode(bytes, {stream:true})`），否则多字节字符跨 chunk 会碎；收尾要再 `decode()` 冲一次。
+- 原始字节按 `{t, b}` 存着（上限 256 KB，超了从头部丢），切换文本/十六进制视图时**整体重渲染**，两个视图才对得上。
+- 十六进制视图用全局列号 `hexCol` 控制每行 16 字节，增量追加和整体重渲染结果一致。
+- 默认 `115200`；打开串口会拉动 DTR 让 Arduino 复位，这属于正常现象，页面 FAQ 里写明。
+
 ## 现有工具
 | 工具 | 版本 | 目标设备 |
 | :--: | :--: | :-- |
 | 思天 QC 工具 | 1.0.4 | ESP32-S3（LilyGO T-Display-S3，16MB） |
 | GalaxyRVR 火星车 | 2.0.0 / 1.1.0 | Arduino UNO（ATmega328P，CH340） |
+| 串口监视器 | — | 任意 USB 串口设备（Web Serial） |
