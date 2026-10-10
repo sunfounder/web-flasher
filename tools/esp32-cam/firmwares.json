@@ -1,0 +1,19 @@
+{
+  "firmwares": [
+    {
+      "id": "ai-camera-firmware-v1.5.4",
+      "version": "1.5.4",
+      "date": "2026-06-02",
+      "flashMode": "dio",
+      "flashFreq": "80m",
+      "flashSize": "4MB",
+      "eraseAll": true,
+      "segments": [
+        {
+          "file": "firmwares/ai-camera-firmware.v1.5.4-factory.bin",
+          "address": 0
+        }
+      ]
+    }
+  ]
+}

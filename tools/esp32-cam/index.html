@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESP32-CAM Firmware Flash</title>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<link rel="apple-touch-icon" href="../../favicon.png">
+<style>
+  *{box-sizing:border-box}
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f4f6f8;margin:0;padding:36px 16px 60px;color:#222;line-height:1.55}
+  .wrap{max-width:700px;margin:0 auto}
+  .card{background:#fff;border:1px solid #e4e8ec;border-radius:14px;box-shadow:0 2px 12px rgba(16,32,48,.06);padding:26px}
+  h2{margin:0 0 6px;font-size:22px}
+  .ver{color:#77828e;font-size:13px;margin:0 0 18px}
+  ol{line-height:1.85;padding-left:22px;margin:0 0 6px}
+  ol li{margin-bottom:2px}
+  .warn{color:#a11;font-size:13px;margin:12px 0 0;line-height:1.7}
+  label{font-weight:700;display:block;margin:18px 0 5px;font-size:14px}
+  select{font-size:16px;padding:8px;width:100%;border:1px solid #bbb;border-radius:6px;background:#fff}
+  .info{background:#f4f6f8;border-radius:8px;padding:9px 12px;font-size:13px;color:#333;margin-top:8px;line-height:1.7;white-space:pre-wrap}
+  button.go{font-size:17px;padding:12px 24px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:14px}
+  button.go:disabled{opacity:.5;cursor:not-allowed}
+  .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:16px 0 10px}
+  #bar{height:100%;width:0%;background:#00a04f;transition:width .15s}
+  #st{font-size:14px;min-height:22px;white-space:pre-wrap}
+  .notice{display:none;color:#a11;font-size:13px;margin-top:10px}
+  .console{margin:14px 0 0}
+  .console .tools{display:flex;gap:8px;margin-bottom:7px}
+  .console .tools button{font-size:13px;padding:6px 12px;border:1px solid #ccd3da;background:#fff;border-radius:6px;cursor:pointer}
+  .console .tools button:hover{background:#f4f7f9}
+  #out{background:#111;color:#d8e0d8;font:13px/1.55 Consolas,"Courier New",monospace;height:280px;overflow:auto;padding:10px 12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;margin:0}
+  .faq{background:#fff;border:1px solid #e4e8ec;border-radius:14px;box-shadow:0 2px 12px rgba(16,32,48,.06);padding:18px 26px 8px;margin:18px 0 0}
+  .faq h3{font-size:15px;margin:0 0 6px;color:#41505f}
+  details{border-top:1px solid #eceff2;padding:10px 0}
+  details summary{cursor:pointer;font-weight:600;font-size:14px}
+  details p{color:#555;font-size:14px;margin:8px 0 0;line-height:1.7}
+  details p b{color:#333}
+  .lang-toggle{position:fixed;top:16px;right:16px;z-index:999;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:#1e293b}
+  .lang-toggle:hover{background:#00a04f;color:#fff;border-color:#00a04f}
+</style>
+</head>
+<body>
+<button class="lang-toggle" id="langToggle" onclick="toggleLang()">中文</button>
+
+<div class="wrap">
+<div class="card">
+  <h2 data-en="ESP32-CAM Firmware Flash" data-zh="ESP32-CAM 固件烧录"></h2>
+  <p class="ver" data-en="ESP32-CAM &middot; 4MB flash &middot; factory image, written from 0x0" data-zh="ESP32-CAM &middot; 4MB Flash &middot; 出厂整包镜像，从 0x0 烧录"></p>
+
+  <ol>
+    <li data-en="Wire the camera to a <b>USB-TTL adapter</b> (or a flashing jig): TX&harr;RX, RX&harr;TX, 5V, GND. Tie <b>GPIO0 to GND</b>, then power the module up (or press Reset) to enter download mode."
+        data-zh="用 <b>USB-TTL</b>（或烧录夹具）接摄像头的 UART：TX&harr;RX、RX&harr;TX、5V、GND；把 <b>GPIO0 接到 GND</b> 后给模块上电（或按一下复位），进入下载模式。"></li>
+    <li data-en="Pick the firmware version below and check the parameters shown." data-zh="在下面选择固件版本，确认显示的烧录参数。"></li>
+    <li data-en="Click <b>Connect &amp; Flash</b> and choose the serial port of the USB-TTL adapter in the dialog." data-zh="点 <b>连接并烧录</b>，在弹窗里选 USB-TTL 对应的串口。"></li>
+    <li data-en="When it reaches 100%, unplug the USB and plug it back in - a web page cannot hard-reset the module, so this step is required." data-zh="进度到 100% 后，拔下 USB 再插上——网页无法触发硬复位，这一步必须做。"></li>
+    <li data-en="Join its WiFi (<b>AI Camera-xxxxxx</b>) and open <b>http://192.168.4.1</b> to check the version." data-zh="连上它的 WiFi（<b>AI Camera-xxxxxx</b>），打开 <b>http://192.168.4.1</b> 核对版本号。"></li>
+  </ol>
+
+  <p class="warn" data-en="&#9888;&#65039; The camera on a GalaxyRVR cannot be flashed this way: on the rover its UART is wired to the UNO main board. Update that one over the air instead - see <a href='https://docs.sunfounder.com/projects/galaxy-rvr/en/latest/update_firmware.html#updating-the-esp32-cam-firmware' target='_blank' rel='noopener'>Updating the ESP32 CAM Firmware</a>."
+     data-zh="&#9888;&#65039; 装在火星车上的摄像头<b>不能</b>用本页烧录：在车上它的 UART 接的是 UNO 主板。车载的请走 OTA 升级，详见 <a href='https://docs.sunfounder.com/projects/galaxy-rvr/zh-cn/latest/update_firmware.html#esp32-cam' target='_blank' rel='noopener'>更新 ESP32 CAM 固件</a>。"></p>
+
+  <label for="fw" data-en="Firmware version" data-zh="选择固件版本"></label>
+  <select id="fw"></select>
+  <div class="info" id="fwinfo"></div>
+
+  <button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
+  <p class="notice" id="notice" data-en="This page needs Web Serial. Please open it in Chrome or Edge on a computer." data-zh="本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"></p>
+  <div class="bar"><div id="bar"></div></div>
+  <div id="st"></div>
+
+  <div class="console">
+    <div class="tools">
+      <button id="dl" data-en="Download log" data-zh="下载日志"></button>
+      <button id="clr" data-en="Clear" data-zh="清空"></button>
+    </div>
+    <pre id="out"></pre>
+  </div>
+</div>
+
+<div class="faq">
+  <h3 data-en="FAQ" data-zh="常见问题"></h3>
+  <details>
+    <summary data-en="The flash fails with &quot;Failed to connect&quot;" data-zh="烧录失败，提示连不上 / Failed to connect"></summary>
+    <p data-en="The module is not in download mode. Check that <b>GPIO0 is tied to GND</b> while it powers up, that TX and RX are <b>crossed</b>, and that the adapter supplies 5V. Then reset the module once and press Flash again."
+       data-zh="模块没进下载模式。确认上电时 <b>GPIO0 接在 GND</b>、TX/RX 是<b>交叉</b>接的、适配器给的是 5V；然后复位一次再点一次烧录。"></p>
+  </details>
+  <details>
+    <summary data-en="No port dialog appears" data-zh="没有弹出串口列表"></summary>
+    <p data-en="Use <b>Chrome</b> or <b>Edge</b> on a computer, and open this page over <b>https</b>. Close Arduino IDE or any serial monitor that already holds the port."
+       data-zh="请在电脑上用 <b>Chrome</b> 或 <b>Edge</b>，并确认本页是通过 <b>https</b> 打开的。关掉已经占用该串口的 Arduino IDE 或串口工具。"></p>
+  </details>
+  <details>
+    <summary data-en="The flash finished but the camera does not come up" data-zh="烧完了但摄像头起不来"></summary>
+    <p data-en="Unplug the USB, release GPIO0, power it again. If it still does not work, do a factory reset: short <b>IO13</b> and <b>IO15</b>, press Reset, release Reset, wait for the LED to blink twice, then release the short and press Reset again."
+       data-zh="拔掉 USB、松开 GPIO0，重新上电。还不行就做工厂复位：短接 <b>IO13</b> 和 <b>IO15</b>，按一下复位并松开，等大灯快闪两下，松开短接再按一次复位。"></p>
+  </details>
+  <details>
+    <summary data-en="Which firmware is on the page?" data-zh="页面上的固件是哪个版本？"></summary>
+    <p data-en="Only released versions are listed, newest first. The same image is also attached to the <a href='https://github.com/sunfounder/ai-camera-firmware/releases' target='_blank' rel='noopener'>ai-camera-firmware releases</a> as <code>-factory.bin</code> (this page) and <code>-ota.bin</code> (for the phone/web OTA update)."
+       data-zh="只列已发布的版本，新的在上面。同样的镜像也放在 <a href='https://github.com/sunfounder/ai-camera-firmware/releases' target='_blank' rel='noopener'>ai-camera-firmware 的 Release</a> 里：<code>-factory.bin</code> 是本页用的整包，<code>-ota.bin</code> 是手机/网页 OTA 用的。"></p>
+  </details>
+</div>
+</div>
+
+<script>
+function getLang() {
+  var params = new URLSearchParams(window.location.search);
+  var urlLang = params.get("lang");
+  if (urlLang === "zh" || urlLang === "en") return urlLang;
+  var userLang = navigator.language || navigator.userLanguage || "en";
+  return userLang.toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+function toggleLang() {
+  var url = new URL(window.location);
+  url.searchParams.set("lang", getLang() === "zh" ? "en" : "zh");
+  window.location.href = url.toString();
+}
+var LANG = getLang();
+function T(en, zh) { return LANG === "zh" ? zh : en; }
+function el(id){ return document.getElementById(id); }
+</script>
+
+<script type="module">
+import { ESPLoader, Transport } from "../../vendor/esptool-js-bundle.js";
+
+const sel = el("fw"), infoEl = el("fwinfo"), go = el("go"), bar = el("bar"), st = el("st"), out = el("out"), notice = el("notice");
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function write(text){ if(!text) return; out.appendChild(document.createTextNode(text)); out.scrollTop = out.scrollHeight; }
+function line(text){ write(text + "\n"); }
+function status(text){ st.textContent = text || ""; }
+const terminal = { clean(){}, writeLine: d => line(d), write: d => write(d) };
+
+let LIST = [];
+
+async function loadList(){
+  const resp = await fetch("./firmwares.json", { cache: "no-store" });
+  if (!resp.ok) throw new Error(T("HTTP ", "读取固件清单失败 HTTP ") + resp.status);
+  LIST = (await resp.json()).firmwares || [];
+  if (!LIST.length) throw new Error(T("empty firmware list", "固件清单为空"));
+  sel.innerHTML = "";
+  for (const fw of LIST){
+    const o = document.createElement("option");
+    o.value = LIST.indexOf(fw);
+    o.textContent = "v" + fw.version + (fw.date ? "（" + fw.date + "）" : "");
+    sel.appendChild(o);
+  }
+  showInfo();
+}
+function showInfo(){
+  const fw = LIST[+sel.value];
+  if (!fw) return;
+  infoEl.textContent = T("Mode ", "参数 ") + (fw.flashMode || "dio") + " / " + (fw.flashFreq || "80m") + " / " + (fw.flashSize || "4MB")
+    + T(" · erase flash first · 1 segment", " · 先整片擦除 · 1 段") + "\n"
+    + T("Image: ", "镜像：") + fw.segments[0].file;
+}
+sel.addEventListener("change", showInfo);
+
+el("clr").addEventListener("click", () => { out.textContent = ""; });
+el("dl").addEventListener("click", () => {
+  const d = new Date(), p = (v) => String(v).padStart(2, "0");
+  const stamp = d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([out.textContent], { type: "text/plain;charset=utf-8" }));
+  a.download = "esp32-cam-flash-" + stamp + ".txt";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+go.addEventListener("click", async () => {
+  go.disabled = true;
+  bar.style.width = "0%";
+  out.textContent = "";
+  try {
+    const fw = LIST[+sel.value];
+    if (!fw) throw new Error(T("Pick a firmware version first.", "请先选择固件版本"));
+    if (!navigator.serial) throw new Error(T("This page needs Web Serial. Please open it in Chrome or Edge on a computer.",
+      "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"));
+
+    status(T("Choose the serial port of the USB-TTL adapter in the dialog…", "请在弹窗里选择 USB-TTL 对应的串口…"));
+    const port = await navigator.serial.requestPort();
+
+    status(T("Connecting to the module…", "正在连接模块…"));
+    line(T("Connecting…", "正在连接…"));
+    const loader = new ESPLoader({ transport: new Transport(port, true), baudrate: 115200, terminal });
+    await loader.main();
+
+    status(T("Reading firmware file…", "读取固件文件…"));
+    const segs = [];
+    for (const s of fw.segments){
+      const resp = await fetch(s.file, { cache: "no-store" });
+      if (!resp.ok) throw new Error(T("firmware file ", "固件文件读取失败 HTTP ") + resp.status + ": " + s.file);
+      segs.push({ data: new Uint8Array(await resp.arrayBuffer()), address: s.address });
+    }
+
+    line(T("Writing flash, do not unplug…", "正在写入 Flash，不要拔线…"));
+    await loader.writeFlash({
+      fileArray: segs,
+      flashMode: fw.flashMode || "dio",
+      flashFreq: fw.flashFreq || "80m",
+      flashSize: fw.flashSize || "4MB",
+      eraseAll: fw.eraseAll !== false,
+      compress: true,
+      reportProgress: (fi, w, t) => {
+        const p = Math.round(w / t * 100);
+        bar.style.width = p + "%";
+        status(T("Writing… ", "写入中… ") + p + "%");
+      },
+    });
+    bar.style.width = "100%";
+    line(T("Flash written successfully.", "固件写入完成。"));
+
+    try { await loader.after("hard_reset"); } catch (e) { /* 适配器可能无法硬复位，忽略 */ }
+    try { await loader.transport.disconnect(); } catch (e) {}
+    status(T("Done - unplug the USB and plug it back in, then release GPIO0.", "完成——拔下 USB 再插上，然后松开 GPIO0。"));
+  } catch (e) {
+    status(T("Failed: ", "失败：") + (e && e.message ? e.message : e));
+    line(String(e && e.stack || e));
+  } finally {
+    go.disabled = false;
+  }
+});
+
+loadList().catch(e => { status(T("Failed: ", "失败：") + e.message); line(String(e && e.message || e)); });
+</script>
+
+<script>
+(function () {
+  document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
+  document.title = T("ESP32-CAM Firmware Flash", "ESP32-CAM 固件烧录");
+  document.querySelectorAll("[data-en][data-zh]").forEach(function (el) {
+    el.innerHTML = LANG === "zh" ? el.getAttribute("data-zh") : el.getAttribute("data-en");
+  });
+  document.getElementById("langToggle").textContent = LANG === "zh" ? "EN" : "中文";
+  if (!navigator.serial) {
+    document.getElementById("go").disabled = true;
+    document.getElementById("notice").style.display = "block";
+  }
+})();
+</script>
+</body>
+</html>

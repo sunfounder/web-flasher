@@ -12,6 +12,17 @@
       "path": "tools/galaxy-rvr/"
     },
     {
+      "id": "esp32-cam",
+      "name": "ESP32-CAM 固件烧录",
+      "name_en": "ESP32-CAM Firmware Flash",
+      "version": "1.5.4",
+      "target": "ESP32-CAM（4MB Flash）",
+      "target_en": "ESP32-CAM (4MB flash)",
+      "desc": "摄像头固件整包烧录（USB-TTL + GPIO0）；车载的请走 OTA",
+      "desc_en": "Camera firmware factory image via USB-TTL + GPIO0; on a rover use OTA instead",
+      "path": "tools/esp32-cam/"
+    },
+    {
       "id": "serial-monitor",
       "name": "串口监视器",
       "name_en": "Serial Monitor",
