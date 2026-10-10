@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="../../favicon.png">
 <link rel="apple-touch-icon" href="../../favicon.png">
 <style>
-  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:640px;margin:40px auto;padding:0 16px;color:#222;line-height:1.5}
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:680px;margin:40px auto;padding:0 16px;color:#222;line-height:1.5}
   h2{margin:0 0 18px}
   h3{margin:34px 0 10px;font-size:17px}
   ol{line-height:1.6;padding-left:24px;margin:0}
@@ -15,10 +15,11 @@
   select{display:block;font-size:16px;padding:8px;width:100%;max-width:360px;box-sizing:border-box;border:1px solid #bbb;border-radius:6px;margin-top:8px}
   button.go{display:block;font-size:17px;padding:12px 24px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:10px}
   button.go:disabled{opacity:.5;cursor:not-allowed}
-  .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:14px 0 0;max-width:420px}
+  .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:14px 0 10px;max-width:460px}
   #bar{height:100%;width:0%;background:#00a04f;transition:width .15s}
-  #st{font-size:14px;min-height:20px;white-space:pre-wrap;margin-top:8px}
-  #log{background:#111;color:#0f0;font:12px/1.5 Consolas,monospace;height:280px;overflow:auto;padding:10px;border-radius:8px;display:none;margin-top:10px}
+  #st{font-size:14px;min-height:20px;white-space:pre-wrap;margin-bottom:8px}
+  /* 烧录信息与串口日志共用同一个窗口 */
+  #out{background:#111;color:#d8e0d8;font:13px/1.55 Consolas,"Courier New",monospace;height:320px;overflow:auto;padding:10px 12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;margin:0}
   .notice{display:none;color:#a11;font-size:13px;margin-top:10px}
   details{border-top:1px solid #e6e9ec;padding:10px 0}
   details summary{cursor:pointer;font-weight:600;font-size:14px}
@@ -43,19 +44,26 @@
   </li>
 
   <li>
-    <span data-en="Click <b>Connect &amp; Flash</b> and choose the port of your board." data-zh="点 <b>连接并烧录</b>，在弹出的列表里选主板对应的串口。"></span>
+    <span data-en="Click <b>Connect &amp; Flash</b> and choose the port of your board. When the flash is done this page opens the serial port by itself (115200) so you can watch the rover boot."
+          data-zh="点 <b>连接并烧录</b>，在弹出的列表里选主板对应的串口。烧完本页会<b>自动打开串口</b>（115200），可以直接看火星车启动日志。"></span>
     <button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
     <p class="notice" id="notice" data-en="This page needs Web Serial. Please open it in Chrome or Edge on a computer." data-zh="本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"></p>
     <div class="bar"><div id="bar"></div></div>
     <div id="st"></div>
-    <div id="log"></div>
+    <pre id="out" data-en="Flash messages and the rover serial log both show up in this window." data-zh="烧录信息与火星车串口日志都显示在这个窗口里。"></pre>
   </li>
 
-  <li data-en="When it finishes, set the switch back to <b>Run</b> and power the rover on again."
-      data-zh="烧完后把拨动开关拨回 <b>Run</b>，重新上电。"></li>
+  <li data-en="Set the switch back to <b>Run</b> and power the rover on again to use it."
+      data-zh="把拨动开关拨回 <b>Run</b>，重新上电即可使用。"></li>
 </ol>
 
 <h3 data-en="FAQ" data-zh="常见问题"></h3>
+
+<details>
+  <summary data-en="How do I check the firmware version?" data-zh="怎么核对固件版本？"></summary>
+  <p data-en="The flash ends by opening the serial port at 115200, so the first lines in the window above are the rover booting: <b>GalaxyRVR version X.Y.Z</b>, then <b>Initialzing...</b> and <b>Okie!</b>. Set the switch to Run first - on Upload the camera is disconnected."
+     data-zh="烧录结束后本页会自动以 115200 打开串口，上面窗口里的头几行就是火星车启动日志：<b>GalaxyRVR version X.Y.Z</b>、<b>Initialzing...</b>、<b>Okie!</b>。注意先把拨动开关拨回 <b>Run</b>，Upload 档下摄像头是断开的。"></p>
+</details>
 
 <details>
   <summary data-en="Which firmware version should I choose?" data-zh="我该选哪个固件版本？"></summary>
@@ -71,13 +79,19 @@
 
 <details>
   <summary data-en="Cannot connect to the board" data-zh="连接不上主板"></summary>
-  <p data-en="Close other programs that are using the serial port (Arduino IDE, serial monitor, another browser tab). Check that the switch is still on <b>Upload</b>, and that the USB serial driver is installed &mdash; on Windows, Device Manager should list <b>USB-SERIAL CH340</b>."
-     data-zh="关掉其他正在占用串口的程序（Arduino IDE、串口监视器、另一个浏览器标签页）。确认拨动开关仍在 <b>Upload</b>，并装好 USB 串口驱动——Windows 在设备管理器里应看到 <b>USB-SERIAL CH340</b>。"></p>
+  <p data-en="Close other programs that are using the serial port (Arduino IDE, serial monitor, another browser tab - including the Serial Monitor page of this site). Check that the switch is still on <b>Upload</b>, and that the USB serial driver is installed - on Windows, Device Manager should list <b>USB-SERIAL CH340</b>."
+     data-zh="关掉其他正在占用串口的程序（Arduino IDE、串口监视器、另一个浏览器标签页——包括本站的串口监视器页面）。确认拨动开关仍在 <b>Upload</b>，并装好 USB 串口驱动——Windows 在设备管理器里应看到 <b>USB-SERIAL CH340</b>。"></p>
 </details>
 
 <details>
-  <summary data-en="The flash failed &mdash; can I just try again?" data-zh="烧录失败了，能重试吗？"></summary>
-  <p data-en="Yes. Unplug the USB cable, plug it back in, set the switch to <b>Upload</b> and run it again. Re-flashing does not damage the rover."
+  <summary data-en="Nothing shows in the serial window" data-zh="串口窗口没有输出"></summary>
+  <p data-en="The log only appears after the flash finishes and the port opens. If the window stays empty, power-cycle the rover with the switch on <b>Run</b>; the port is opened at 115200, which is the only baud rate the rover uses."
+     data-zh="串口日志要等烧录结束、串口打开之后才有。如果一直是空的，把开关拨到 <b>Run</b> 后重新上电；本页固定用 115200，火星车只用这个波特率。"></p>
+</details>
+
+<details>
+  <summary data-en="The flash failed - can I just try again?" data-zh="烧录失败了，能重试吗？"></summary>
+  <p data-en="Yes. Unplug the USB cable, plug it back in, set the switch to <b>Upload</b> and click the button again. Re-flashing does not damage the rover."
      data-zh="可以。拔下 USB 再插上，把开关拨到 <b>Upload</b>，重新点一次即可；重复烧录不会损坏火星车。"></p>
 </details>
 
@@ -102,15 +116,28 @@ function T(en, zh) { return LANG === "zh" ? zh : en; }
 import { STK500 } from "../../vendor/webserial-flasher/stk500.js";
 import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/WebSerialTransport.js";
 
-const st = el("st"), bar = el("bar"), logEl = el("log");
-const sel = el("fw"), go = el("go"), notice = el("notice");
+const sel = el("fw"), go = el("go"), bar = el("bar"), st = el("st"), out = el("out"), notice = el("notice");
 function el(id){ return document.getElementById(id); }
-function log(s){ logEl.style.display="block"; const d=document.createElement("div"); d.textContent=s; logEl.appendChild(d); logEl.scrollTop=1e9; }
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const BAUD = 115200; // the rover only ever talks at 115200, so it is fixed here
 
 let BOARD = {};
 let LIST = [];
+let port = null;          // kept between the flash and the serial session
+let monitorReader = null; // non-null while the serial session is running
+let monitoring = false;
 
+/* ---------- output window: flash messages and serial data share it ---------- */
+function write(text){
+  if (!text) return;
+  out.appendChild(document.createTextNode(text));
+  out.scrollTop = out.scrollHeight;
+}
+function line(text){ write(text + "\n"); }
+function rule(text){ line(""); line("---------- " + text + " ----------"); }
+function status(text){ st.textContent = text || ""; }
+
+/* ---------- firmware list ---------- */
 async function loadList(){
   const resp = await fetch("./firmwares.json", { cache: "no-store" });
   if (!resp.ok) throw new Error("HTTP " + resp.status);
@@ -129,17 +156,48 @@ async function loadList(){
 
 function hexToBytes(hex){
   const s = String(hex || "").replace(/[^0-9a-fA-F]/g, "");
-  const out = new Uint8Array(s.length / 2);
-  for (let i = 0; i < out.length; i++) out[i] = parseInt(s.substr(i * 2, 2), 16);
-  return out;
+  const b = new Uint8Array(s.length / 2);
+  for (let i = 0; i < b.length; i++) b[i] = parseInt(s.substr(i * 2, 2), 16);
+  return b;
 }
 
+/* ---------- serial session ---------- */
+async function startMonitor(){
+  if (!port) return;
+  await port.open({ baudRate: BAUD });
+  monitoring = true;
+  monitorReader = port.readable.getReader();
+  rule(T("serial opened at 115200 - set the switch to Run and power-cycle to see the full boot log",
+         "串口已打开（115200）——把开关拨回 Run 并重新上电，可看到完整启动日志"));
+  const decoder = new TextDecoder("utf-8", { fatal: false });
+  try {
+    for (;;){
+      const res = await monitorReader.read();
+      if (res.done || !monitoring) break;
+      if (res.value && res.value.length) write(decoder.decode(res.value, { stream: true }));
+    }
+  } catch (e) { /* port closed or unplugged */ }
+  finally {
+    try { monitorReader.releaseLock(); } catch (e) {}
+    monitorReader = null;
+  }
+}
+
+async function stopMonitor(){
+  monitoring = false;
+  const r = monitorReader;
+  if (r){ try { await r.cancel(); } catch (e) {} }
+  await sleep(60);
+  try { if (port) await port.close(); } catch (e) {}
+  monitorReader = null;
+}
+
+/* ---------- flash ---------- */
 go.addEventListener("click", async () => {
   go.disabled = true;
   bar.style.width = "0%";
-  st.textContent = "";
-  logEl.innerHTML = "";
-  logEl.style.display = "none";
+  status("");
+  out.textContent = "";
   let transport = null;
   try {
     const fw = LIST[+sel.value];
@@ -147,7 +205,14 @@ go.addEventListener("click", async () => {
     if (!navigator.serial) throw new Error(T("This page needs Web Serial. Please open it in Chrome or Edge on a computer.",
       "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"));
 
-    st.textContent = T("Reading firmware file…", "读取固件文件…");
+    // release the port if the serial session from a previous flash is still running
+    if (monitoring){
+      status(T("Closing the serial session of the previous flash…", "正在关闭上一次烧录打开的串口…"));
+      await stopMonitor();
+    }
+
+    status(T("Reading firmware file…", "读取固件文件…"));
+    line(T("Reading ", "读取 ") + fw.file);
     const resp = await fetch(fw.file, { cache: "no-store" });
     if (!resp.ok) throw new Error("HTTP " + resp.status + " " + fw.file);
     const hexText = await resp.text();
@@ -155,37 +220,37 @@ go.addEventListener("click", async () => {
 
     const board = {
       name: BOARD.name || "Arduino UNO",
-      baudRate: BOARD.baudRate || 115200,
+      baudRate: BAUD,
       signature: hexToBytes(BOARD.signature || "1e950f"),
       pageSize: BOARD.pageSize || 128,
       timeout: 600,
       flashSize: BOARD.flashSize || 32256,
-      // 复位由本页自己发：库的 setSignals 传 {dtr,rts} 与 Web Serial 规范不同名，交给它等于不复位
       resetMethod: "none",
       resetDelayMs: 0,
     };
 
-    st.textContent = T("Choose the serial port of your board in the dialog…", "请在弹窗里选择主板对应的串口…");
-    const port = await navigator.serial.requestPort();
+    status(T("Choose the serial port of your board in the dialog…", "请在弹窗里选择主板对应的串口…"));
+    if (!port) port = await navigator.serial.requestPort();
     transport = new WebSerialTransport(port);
-    st.textContent = T("Opening the port…", "打开串口…");
-    await transport.open(board.baudRate);
+    await transport.open(BAUD);
 
-    // Arduino 自动复位：DTR 拉低再放开，经 100nF 电容给 RESET 一个脉冲
-    st.textContent = T("Resetting the board…", "复位主板…");
+    // Arduino auto-reset: DTR low then high pulses RESET through the 100nF cap
+    status(T("Resetting the board…", "复位主板…"));
+    line(T("Resetting the board…", "复位主板…"));
     try {
       await port.setSignals({ dataTerminalReady: false, requestToSend: false });
       await sleep(120);
       await port.setSignals({ dataTerminalReady: true, requestToSend: true });
-    } catch (e) { log("setSignals unsupported: " + e.message); }
+    } catch (e) {}
     await sleep(BOARD.resetDelayMs || 500);
 
     const stk = new STK500(transport, board, {
-      logger: (level, message) => log("[" + level + "] " + message),
+      logger: () => {},
       retry: { syncAttempts: 10, retryDelayMs: 250 },
     });
 
-    st.textContent = T("Connecting to the board…", "连接主板…");
+    status(T("Connecting to the board…", "连接主板…"));
+    line(T("Connecting to the board…", "连接主板…"));
     await stk.sync(10);
     await stk.sync(3);
     await stk.verifySignature();
@@ -193,47 +258,46 @@ go.addEventListener("click", async () => {
     await stk.enterProgrammingMode();
     bar.style.width = "18%";
 
-    st.textContent = T("Writing firmware… 0%", "写入固件… 0%");
     await stk.upload(hexText, (pct) => {
       const p = Math.round(pct);
       bar.style.width = (18 + p * 0.57) + "%";
-      st.textContent = T("Writing firmware… ", "写入固件… ") + p + "%";
+      status(T("Writing firmware… ", "写入固件… ") + p + "%");
     });
+    line(T("Firmware written.", "固件已写入。"));
 
-    st.textContent = T("Verifying… 0%", "回读校验… 0%");
     await stk.verify(hexText, (pct) => {
       const p = Math.round(pct);
       bar.style.width = (75 + p * 0.2) + "%";
-      st.textContent = T("Verifying… ", "回读校验… ") + p + "%";
+      status(T("Verifying… ", "回读校验… ") + p + "%");
     });
+    line(T("Verified - flash matches the file.", "回读校验通过，与固件文件一致。"));
 
-    st.textContent = T("Finishing up…", "收尾…");
+    status(T("Finishing up…", "收尾…"));
     await stk.exitProgrammingMode();
     await transport.close();
     transport = null;
 
     bar.style.width = "100%";
-    st.textContent = T("✔ Done — firmware flashed.", "✔ 完成，固件已烧录。");
-    alert(T(
-      "Firmware flashed successfully.\n\nVersion " + fw.version + "\n\n"
-        + "1. Set the switch back to Run\n2. Power the rover on again",
-      "固件烧录成功。\n\n版本 " + fw.version + "\n\n"
-        + "1. 把拨动开关拨回 Run\n2. 重新上电"
-    ));
+    status(T("Done. Opening the serial port…", "烧录完成，正在打开串口…"));
+
+    // hand over to the serial session: the board has just been reset, so its
+    // boot banner (including the version) lands in the window above
+    await sleep(300);
+    await startMonitor();
+    status(T("Done - firmware flashed, serial port open.", "完成——固件已烧录，串口已打开。"));
   } catch (e) {
-    st.textContent = T("Failed: ", "失败：") + (e && e.message ? e.message : e);
-    log(String(e && e.stack || e));
+    status(T("Failed: ", "失败：") + (e && e.message ? e.message : e));
+    line(String(e && e.message ? e.message : e));
   } finally {
-    if (transport) { try { await transport.close(); } catch (e) { /* ignore */ } }
+    if (transport) { try { await transport.close(); } catch (e) {} }
     go.disabled = false;
   }
 });
 
-loadList().catch(e => { st.textContent = T("Failed: ", "失败：") + e.message; log(String(e && e.stack || e)); });
+loadList().catch(e => { status(T("Failed: ", "失败：") + e.message); line(String(e && e.message ? e.message : e)); });
 </script>
 
 <script>
-// 语言落地 + 打开页面就检查 Web Serial 支持情况
 (function () {
   document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
   document.title = T("GalaxyRVR Firmware Update", "GalaxyRVR 固件烧录");
@@ -241,13 +305,9 @@ loadList().catch(e => { st.textContent = T("Failed: ", "失败：") + e.message;
     el.innerHTML = LANG === "zh" ? el.getAttribute("data-zh") : el.getAttribute("data-en");
   });
   document.getElementById("langToggle").textContent = LANG === "zh" ? "EN" : "中文";
-
   if (!navigator.serial) {
-    var msg = T("This page needs the Web Serial API. Please open it in Chrome or Edge on a computer.",
-                "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。");
     document.getElementById("go").disabled = true;
     document.getElementById("notice").style.display = "block";
-    alert(msg);
   }
 })();
 </script>
