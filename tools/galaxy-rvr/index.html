@@ -129,8 +129,8 @@
 </div>
 
 <!-- ============ FAQ：卡片下面，跟随步骤 ============ -->
-<div class="faq active" id="f1">
-  <h3 data-en="Step 1 FAQ" data-zh="第 1 步常见问题"></h3>
+<div class="faq active" id="f2" data-step="2">
+  <h3 data-en="Step 2 FAQ" data-zh="第 2 步常见问题"></h3>
   <details>
     <summary data-en="No port dialog appears" data-zh="没有弹出串口列表"></summary>
     <p data-en="Use <b>Chrome</b> or <b>Edge</b> on a computer, and open this page over <b>https</b>."
@@ -141,10 +141,6 @@
     <p data-en="Close other programs that are using the serial port (Arduino IDE, a serial monitor, another browser tab - including the Serial Monitor page of this site). Check the switch is still on <b>Upload</b>, try another USB cable or port, and make sure the USB serial driver is installed: Windows Device Manager should list <b>Arduino UNO R3</b> or <b>USB-SERIAL CH340</b>."
        data-zh="关掉其他正在占用串口的程序（Arduino IDE、串口监视器、另一个浏览器标签页——包括本站的串口监视器页面）。确认开关仍在 <b>Upload</b>，换一根 USB 线或换个 USB 口试试，并装好 USB 串口驱动：Windows 设备管理器里应能看到 <b>Arduino UNO R3</b> 或 <b>USB-SERIAL CH340</b>。"></p>
   </details>
-</div>
-
-<div class="faq" id="f2">
-  <h3 data-en="Step 2 FAQ" data-zh="第 2 步常见问题"></h3>
   <details>
     <summary data-en="The flash failed - can I just try again?" data-zh="烧录失败了，能重试吗？"></summary>
     <p data-en="Yes. Unplug the USB cable, plug it back in, keep the switch on <b>Upload</b> and click the button again. Re-flashing does not damage the rover."
@@ -157,7 +153,7 @@
   </details>
 </div>
 
-<div class="faq" id="f3">
+<div class="faq" id="f3" data-step="3">
   <h3 data-en="Step 3 FAQ" data-zh="第 3 步常见问题"></h3>
   <details>
     <summary data-en="How do I check the firmware version?" data-zh="怎么核对固件版本？"></summary>
@@ -199,7 +195,7 @@ function el(id){ return document.getElementById(id); }
 import { STK500 } from "../../vendor/webserial-flasher/stk500.js";
 import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/WebSerialTransport.js";
 
-const panels = [el("p1"), el("p2"), el("p3")], faqs = [el("f1"), el("f2"), el("f3")], consoleEl = el("console");
+const panels = [el("p1"), el("p2"), el("p3")], faqs = Array.from(document.querySelectorAll(".faq")), consoleEl = el("console");
 const go = el("go"), bar = el("bar"), st = el("st"), out = el("out"), notice = el("notice"), fwline = el("fwline");
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const BAUD = 115200; // the rover only ever talks at 115200, so it is fixed here
@@ -214,7 +210,7 @@ let step = 1;
 function showStep(n){
   step = n;
   panels.forEach((p, i) => p.classList.toggle("active", i === n - 1));
-  faqs.forEach((f, i) => f.classList.toggle("active", i === n - 1));
+  faqs.forEach(f => f.classList.toggle("active", f.getAttribute("data-step") === String(n)));
   for (let i = 1; i <= 3; i++){
     const li = el("si" + i);
     li.classList.toggle("active", i === n);
