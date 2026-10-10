@@ -62,6 +62,13 @@
   <select id="fw"></select>
   <div class="info" id="fwinfo"></div>
 
+  <label for="baud" data-en="Flash speed" data-zh="烧录速率"></label>
+  <select id="baud">
+    <option value="921600">921600（最快 · fastest）</option>
+    <option value="460800">460800</option>
+    <option value="115200">115200（最稳 · most compatible）</option>
+  </select>
+
   <button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
   <p class="notice" id="notice" data-en="This page needs Web Serial. Please open it in Chrome or Edge on a computer." data-zh="本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"></p>
   <div class="bar"><div id="bar"></div></div>
@@ -80,8 +87,8 @@
   <h3 data-en="FAQ" data-zh="常见问题"></h3>
   <details>
     <summary data-en="The flash fails with &quot;Failed to connect&quot;" data-zh="烧录失败，提示连不上 / Failed to connect"></summary>
-    <p data-en="The module is not in download mode. Check that <b>GPIO0 is tied to GND</b> while it powers up, that TX and RX are <b>crossed</b>, and that the adapter supplies 5V. Then reset the module once and press Flash again."
-       data-zh="模块没进下载模式。确认上电时 <b>GPIO0 接在 GND</b>、TX/RX 是<b>交叉</b>接的、适配器给的是 5V；然后复位一次再点一次烧录。"></p>
+    <p data-en="The module is not in download mode. Check that <b>GPIO0 is tied to GND</b> while it powers up, that TX and RX are <b>crossed</b>, and that the adapter supplies 5V. Then reset the module once and press Flash again. If it still fails, lower <b>Flash speed</b> to 115200."
+       data-zh="模块没进下载模式。确认上电时 <b>GPIO0 接在 GND</b>、TX/RX 是<b>交叉</b>接的、适配器给的是 5V；然后复位一次再点一次烧录。还是不行就把<b>烧录速率</b>降到 115200。"></p>
   </details>
   <details>
     <summary data-en="No port dialog appears" data-zh="没有弹出串口列表"></summary>
@@ -127,7 +134,7 @@ function el(id){ return document.getElementById(id); }
 <script type="module">
 import { ESPLoader, Transport } from "../../vendor/esptool-js-bundle.js";
 
-const sel = el("fw"), infoEl = el("fwinfo"), go = el("go"), bar = el("bar"), st = el("st"), out = el("out"), notice = el("notice");
+const sel = el("fw"), infoEl = el("fwinfo"), go = el("go"), bar = el("bar"), st = el("st"), out = el("out"), notice = el("notice"), baudSel = el("baud");
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 function write(text){ if(!text) return; out.appendChild(document.createTextNode(text)); out.scrollTop = out.scrollHeight; }
@@ -219,7 +226,10 @@ go.addEventListener("click", async () => {
 
     status(T("Connecting to the module…", "正在连接模块…"));
     line(T("Connecting…", "正在连接…"));
-    const loader = new ESPLoader({ transport: new Transport(port, true), baudrate: 115200, terminal });
+    // 先用 115200 握手，main() 会在 stub 起来后自动切到这里的速率（esptool-js 的 changeBaud）
+    const baud = +baudSel.value || 921600;
+    line(T("Target speed: ", "目标速率：") + baud + " baud");
+    const loader = new ESPLoader({ transport: new Transport(port, true), baudrate: baud, terminal });
     await loader.main();
 
     status(T("Reading firmware file…", "读取固件文件…"));
