@@ -7,21 +7,46 @@
 <link rel="icon" type="image/png" href="../../favicon.png">
 <link rel="apple-touch-icon" href="../../favicon.png">
 <style>
-  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:680px;margin:40px auto;padding:0 16px;color:#222;line-height:1.5}
-  h2{margin:0 0 18px}
-  h3{margin:34px 0 10px;font-size:17px}
-  ol{line-height:1.6;padding-left:24px;margin:0}
-  ol > li{margin-bottom:16px}
-  select{display:block;font-size:16px;padding:8px;width:100%;max-width:360px;box-sizing:border-box;border:1px solid #bbb;border-radius:6px;margin-top:8px}
-  button.go{display:block;font-size:17px;padding:12px 24px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff;margin-top:10px}
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;max-width:680px;margin:36px auto 60px;padding:0 16px;color:#222;line-height:1.55}
+  h2{margin:0 0 20px;font-size:22px}
+  /* ---- 步骤指示器 ---- */
+  .steps{display:flex;gap:10px;margin:0 0 24px;padding:0;list-style:none}
+  .steps li{flex:1;text-align:center;font-size:13px;color:#98a2ad;border-top:3px solid #e4e8ec;padding-top:9px}
+  .steps li .n{display:inline-block;width:19px;height:19px;line-height:19px;border-radius:50%;background:#e4e8ec;color:#fff;font-size:12px;margin-right:5px;vertical-align:1px}
+  .steps li.active{color:#00a04f;font-weight:700;border-top-color:#00a04f}
+  .steps li.active .n{background:#00a04f}
+  .steps li.done{color:#41505f;border-top-color:#a9dcbf}
+  .steps li.done .n{background:#a9dcbf}
+  .steps li.done a{color:inherit;text-decoration:none;cursor:pointer}
+  /* ---- 页面 ---- */
+  .panel{display:none}
+  .panel.active{display:block}
+  .panel > p{margin:0 0 14px}
+  .lead{font-size:16px}
+  figure{margin:16px 0}
+  figure img{width:100%;max-width:520px;border-radius:8px;border:1px solid #e4e8ec;display:block}
+  figcaption{font-size:13px;color:#77828e;margin-top:6px}
+  .fwline{font-size:14px;color:#41505f;margin:0 0 10px}
+  button.go{display:block;font-size:17px;padding:12px 24px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff}
   button.go:disabled{opacity:.5;cursor:not-allowed}
   .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:14px 0 10px;max-width:460px}
   #bar{height:100%;width:0%;background:#00a04f;transition:width .15s}
   #st{font-size:14px;min-height:20px;white-space:pre-wrap;margin-bottom:8px}
-  /* 烧录信息与串口日志共用同一个窗口 */
-  #out{background:#111;color:#d8e0d8;font:13px/1.55 Consolas,"Courier New",monospace;height:320px;overflow:auto;padding:10px 12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;margin:0}
+  .nav{margin:18px 0 0;display:flex;gap:8px}
+  button.nav-btn{font-size:16px;padding:11px 22px;border-radius:8px;border:0;cursor:pointer}
+  button.next{background:#00a04f;color:#fff}
+  button.back{background:#eef1f4;color:#33414f}
   .notice{display:none;color:#a11;font-size:13px;margin-top:10px}
-  details{border-top:1px solid #e6e9ec;padding:10px 0}
+  /* ---- 共用输出窗口（烧录信息 + 串口日志）---- */
+  .console{margin:16px 0 4px}
+  .console .tools{display:flex;gap:8px;margin-bottom:7px}
+  .console .tools button{font-size:13px;padding:6px 12px;border:1px solid #ccd3da;background:#fff;border-radius:6px;cursor:pointer}
+  .console .tools button:hover{background:#f4f7f9}
+  #out{background:#111;color:#d8e0d8;font:13px/1.55 Consolas,"Courier New",monospace;height:300px;overflow:auto;padding:10px 12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;margin:0}
+  /* ---- FAQ ---- */
+  .faq{margin:26px 0 0}
+  .faq h3{font-size:15px;margin:0 0 8px;color:#41505f}
+  details{border-top:1px solid #eceff2;padding:9px 0}
   details summary{cursor:pointer;font-weight:600;font-size:14px}
   details p{color:#555;font-size:14px;margin:8px 0 0;line-height:1.7}
   details p b{color:#333}
@@ -34,66 +59,93 @@
 
 <h2 data-en="GalaxyRVR Firmware Update" data-zh="GalaxyRVR 固件烧录"></h2>
 
-<ol>
-  <li data-en="Power on the rover, connect the USB cable to the <b>main board</b>, and set the switch on the expansion board to <b>Upload</b>."
-      data-zh="火星车通电，USB 线接<b>主板</b>，把扩展板上的拨动开关拨到 <b>Upload</b>。"></li>
+<ul class="steps" id="steps">
+  <li id="si1" class="active"><span class="n">1</span><span data-en="Connect" data-zh="接线"></span></li>
+  <li id="si2"><span class="n">2</span><span data-en="Flash" data-zh="烧录"></span></li>
+  <li id="si3"><span class="n">3</span><span data-en="Done" data-zh="完成"></span></li>
+</ul>
 
-  <li>
-    <span data-en="Select the firmware version." data-zh="选择固件版本。"></span>
-    <select id="fw"></select>
-  </li>
+<!-- ============ 第 1 步 ============ -->
+<section class="panel active" id="p1">
+  <p class="lead" data-en="Connect the main board to your computer with a <b>USB A to B</b> cable (not the Type-C one), then set the mode switch to the <b>Upload</b> position."
+     data-zh="用 <b>USB A 转 B</b> 线（不是 Type-C 那根）把主板连到电脑，然后把模式开关拨到 <b>Upload</b> 位置。"></p>
+  <figure>
+    <img src="img/camera_upload.jpg" alt="Upload switch">
+    <figcaption data-en="Set the switch to UPLOAD" data-zh="把开关拨到 UPLOAD"></figcaption>
+  </figure>
+  <div class="faq">
+    <h3 data-en="FAQ for this step" data-zh="这一步的常见问题"></h3>
+    <details>
+      <summary data-en="No port dialog appears" data-zh="没有弹出串口列表"></summary>
+      <p data-en="Use <b>Chrome</b> or <b>Edge</b> on a computer, and open this page over <b>https</b>."
+         data-zh="请在电脑上使用 <b>Chrome</b> 或 <b>Edge</b>，并确认本页是通过 <b>https</b> 打开的。"></p>
+    </details>
+    <details>
+      <summary data-en="The board does not show up" data-zh="连接不上主板"></summary>
+      <p data-en="Close other programs that are using the serial port (Arduino IDE, a serial monitor, another browser tab - including the Serial Monitor page of this site). Check the switch is still on <b>Upload</b>, try another USB cable or port, and make sure the USB serial driver is installed: Windows Device Manager should list <b>USB-SERIAL CH340</b>."
+         data-zh="关掉其他正在占用串口的程序（Arduino IDE、串口监视器、另一个浏览器标签页——包括本站的串口监视器页面）。确认开关仍在 <b>Upload</b>，换一根 USB 线或换个 USB 口试试，并装好 USB 串口驱动：Windows 设备管理器里应能看到 <b>USB-SERIAL CH340</b>。"></p>
+    </details>
+  </div>
+  <div class="nav"><button class="nav-btn next" id="to2" data-en="Next" data-zh="下一步"></button></div>
+</section>
 
-  <li>
-    <span data-en="Click <b>Connect &amp; Flash</b> and choose the port of your board. When the flash is done this page opens the serial port by itself (115200) so you can watch the rover boot."
-          data-zh="点 <b>连接并烧录</b>，在弹出的列表里选主板对应的串口。烧完本页会<b>自动打开串口</b>（115200），可以直接看火星车启动日志。"></span>
-    <button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
-    <p class="notice" id="notice" data-en="This page needs Web Serial. Please open it in Chrome or Edge on a computer." data-zh="本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"></p>
-    <div class="bar"><div id="bar"></div></div>
-    <div id="st"></div>
-    <pre id="out" data-en="Flash messages and the rover serial log both show up in this window." data-zh="烧录信息与火星车串口日志都显示在这个窗口里。"></pre>
-  </li>
+<!-- ============ 第 2 步 ============ -->
+<section class="panel" id="p2">
+  <p class="lead" data-en="Click the button below and pick the port of your board (<b>USB-SERIAL CH340</b>) in the dialog. Do not unplug the cable while it is writing."
+     data-zh="点下面的按钮，在弹窗里选主板对应的串口（<b>USB-SERIAL CH340</b>）。写入过程中不要拔线。"></p>
+  <p class="fwline" id="fwline"></p>
+  <button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
+  <p class="notice" id="notice" data-en="This page needs Web Serial. Please open it in Chrome or Edge on a computer." data-zh="本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"></p>
+  <div class="bar"><div id="bar"></div></div>
+  <div id="st"></div>
+  <div class="faq">
+    <h3 data-en="FAQ for this step" data-zh="这一步的常见问题"></h3>
+    <details>
+      <summary data-en="The flash failed - can I just try again?" data-zh="烧录失败了，能重试吗？"></summary>
+      <p data-en="Yes. Unplug the USB cable, plug it back in, keep the switch on <b>Upload</b> and click the button again. Re-flashing does not damage the rover."
+         data-zh="可以。拔下 USB 再插上，开关保持在 <b>Upload</b>，再点一次按钮即可；重复烧录不会损坏火星车。"></p>
+    </details>
+    <details>
+      <summary data-en="The port list has no CH340 entry" data-zh="串口列表里没有 CH340"></summary>
+      <p data-en="Install the <b>CH340</b> USB serial driver, then reload this page. If it still does not appear, try another USB cable (some cables are charge-only) and another USB port."
+         data-zh="装一下 <b>CH340</b> 串口驱动，然后刷新本页。还是没有的话，换一根 USB 线（有些线只能充电）和另一个 USB 口试试。"></p>
+    </details>
+  </div>
+  <div class="nav"><button class="nav-btn back" id="back1" data-en="Back" data-zh="上一步"></button></div>
+</section>
 
-  <li data-en="Set the switch back to <b>Run</b> and power the rover on again to use it."
-      data-zh="把拨动开关拨回 <b>Run</b>，重新上电即可使用。"></li>
-</ol>
+<!-- ============ 第 3 步 ============ -->
+<section class="panel" id="p3">
+  <p class="lead" data-en="Flashing is done. Set the mode switch back to its original position and press the <b>Reset</b> button on the R3 board - the window below then shows the rover booting."
+     data-zh="烧录完成。把模式开关拨回原来的位置，按一下 R3 板上的 <b>Reset</b> 键，下面的窗口就会显示火星车启动日志。"></p>
+  <figure>
+    <img src="img/camera_run1.jpg" alt="Switch back">
+    <figcaption data-en="Set the switch back after flashing" data-zh="烧完把开关拨回去"></figcaption>
+  </figure>
+  <div class="faq">
+    <h3 data-en="FAQ for this step" data-zh="这一步的常见问题"></h3>
+    <details>
+      <summary data-en="How do I check the firmware version?" data-zh="怎么核对固件版本？"></summary>
+      <p data-en="The first line of the log is <b>GalaxyRVR version X.Y.Z</b>, followed by <b>Initialzing...</b> and <b>Okie!</b>. This page flashes <b>2.0.2</b>."
+         data-zh="日志第一行就是 <b>GalaxyRVR version X.Y.Z</b>，接着是 <b>Initialzing...</b> 和 <b>Okie!</b>。本页烧录的是 <b>2.0.2</b>。"></p>
+    </details>
+    <details>
+      <summary data-en="The serial window stays empty" data-zh="串口窗口没有输出"></summary>
+      <p data-en="Power-cycle the rover or press the <b>Reset</b> button; the port is opened at 115200, which is the only baud rate the rover uses."
+         data-zh="给火星车重新上电，或按一下 <b>Reset</b> 键；本页固定用 115200，火星车只用这个波特率。"></p>
+    </details>
+  </div>
+  <div class="nav"><button class="nav-btn back" id="back2" data-en="Back" data-zh="上一步"></button></div>
+</section>
 
-<h3 data-en="FAQ" data-zh="常见问题"></h3>
-
-<details>
-  <summary data-en="How do I check the firmware version?" data-zh="怎么核对固件版本？"></summary>
-  <p data-en="The flash ends by opening the serial port at 115200, so the first lines in the window above are the rover booting: <b>GalaxyRVR version X.Y.Z</b>, then <b>Initialzing...</b> and <b>Okie!</b>. Set the switch to Run first - on Upload the camera is disconnected."
-     data-zh="烧录结束后本页会自动以 115200 打开串口，上面窗口里的头几行就是火星车启动日志：<b>GalaxyRVR version X.Y.Z</b>、<b>Initialzing...</b>、<b>Okie!</b>。注意先把拨动开关拨回 <b>Run</b>，Upload 档下摄像头是断开的。"></p>
-</details>
-
-<details>
-  <summary data-en="Which firmware version should I choose?" data-zh="我该选哪个固件版本？"></summary>
-  <p data-en="<b>1.1.0</b> is for the first generation GalaxyRVR. <b>2.0.2</b> is for the current generation. If you are not sure which rover you have, check the label on the box or contact us."
-     data-zh="<b>1.1.0</b> 供第一代 GalaxyRVR 使用，<b>2.0.2</b> 供现在的版本使用。分不清自己手上是哪一代，看包装盒上的标签，或联系我们。"></p>
-</details>
-
-<details>
-  <summary data-en="No port dialog appears" data-zh="没有弹出串口列表"></summary>
-  <p data-en="Use <b>Chrome</b> or <b>Edge</b> on a computer, and make sure this page is opened over <b>https</b>."
-     data-zh="请在电脑上使用 <b>Chrome</b> 或 <b>Edge</b>，并确认本页是通过 <b>https</b> 打开的。"></p>
-</details>
-
-<details>
-  <summary data-en="Cannot connect to the board" data-zh="连接不上主板"></summary>
-  <p data-en="Close other programs that are using the serial port (Arduino IDE, serial monitor, another browser tab - including the Serial Monitor page of this site). Check that the switch is still on <b>Upload</b>, and that the USB serial driver is installed - on Windows, Device Manager should list <b>USB-SERIAL CH340</b>."
-     data-zh="关掉其他正在占用串口的程序（Arduino IDE、串口监视器、另一个浏览器标签页——包括本站的串口监视器页面）。确认拨动开关仍在 <b>Upload</b>，并装好 USB 串口驱动——Windows 在设备管理器里应看到 <b>USB-SERIAL CH340</b>。"></p>
-</details>
-
-<details>
-  <summary data-en="Nothing shows in the serial window" data-zh="串口窗口没有输出"></summary>
-  <p data-en="The log only appears after the flash finishes and the port opens. If the window stays empty, power-cycle the rover with the switch on <b>Run</b>; the port is opened at 115200, which is the only baud rate the rover uses."
-     data-zh="串口日志要等烧录结束、串口打开之后才有。如果一直是空的，把开关拨到 <b>Run</b> 后重新上电；本页固定用 115200，火星车只用这个波特率。"></p>
-</details>
-
-<details>
-  <summary data-en="The flash failed - can I just try again?" data-zh="烧录失败了，能重试吗？"></summary>
-  <p data-en="Yes. Unplug the USB cable, plug it back in, set the switch to <b>Upload</b> and click the button again. Re-flashing does not damage the rover."
-     data-zh="可以。拔下 USB 再插上，把开关拨到 <b>Upload</b>，重新点一次即可；重复烧录不会损坏火星车。"></p>
-</details>
+<!-- ============ 共用输出窗口：第 2、3 步都会挂到这个位置 ============ -->
+<div class="console" id="console">
+  <div class="tools">
+    <button id="dl" data-en="Download log" data-zh="下载日志"></button>
+    <button id="clr" data-en="Clear" data-zh="清空"></button>
+  </div>
+  <pre id="out" data-en="Flash messages and the rover serial log both show up in this window." data-zh="烧录信息与火星车串口日志都显示在这个窗口里。"></pre>
+</div>
 
 <script>
 function getLang() {
@@ -110,24 +162,52 @@ function toggleLang() {
 }
 var LANG = getLang();
 function T(en, zh) { return LANG === "zh" ? zh : en; }
+function el(id){ return document.getElementById(id); }
 </script>
 
 <script type="module">
 import { STK500 } from "../../vendor/webserial-flasher/stk500.js";
 import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/WebSerialTransport.js";
 
-const sel = el("fw"), go = el("go"), bar = el("bar"), st = el("st"), out = el("out"), notice = el("notice");
-function el(id){ return document.getElementById(id); }
+const steps = el("steps"), panels = [el("p1"), el("p2"), el("p3")], consoleEl = el("console");
+const go = el("go"), bar = el("bar"), st = el("st"), out = el("out"), notice = el("notice"), fwline = el("fwline");
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const BAUD = 115200; // the rover only ever talks at 115200, so it is fixed here
 
-let BOARD = {};
-let LIST = [];
+let fw = null, BOARD = {};
 let port = null;          // kept between the flash and the serial session
 let monitorReader = null; // non-null while the serial session is running
 let monitoring = false;
+let step = 1;
 
-/* ---------- output window: flash messages and serial data share it ---------- */
+/* ---------- 步骤切换 ---------- */
+function showStep(n){
+  step = n;
+  panels.forEach((p, i) => p.classList.toggle("active", i === n - 1));
+  for (let i = 1; i <= 3; i++){
+    const li = el("si" + i);
+    li.classList.toggle("active", i === n);
+    li.classList.toggle("done", i < n);
+  }
+  // 同一个输出窗口跟着走：第 2、3 步都显示，第 1 步不显示
+  if (n >= 2){
+    const panel = panels[n - 1];
+    panel.insertBefore(consoleEl, panel.querySelector(".faq"));
+  } else {
+    document.body.appendChild(consoleEl);
+    consoleEl.style.display = "none";
+    return;
+  }
+  consoleEl.style.display = "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+el("to2").addEventListener("click", () => showStep(2));
+el("back1").addEventListener("click", () => showStep(1));
+el("back2").addEventListener("click", () => showStep(2));
+el("si1").addEventListener("click", () => showStep(1));
+el("si2").addEventListener("click", () => { if (step > 2) showStep(2); });
+
+/* ---------- 输出窗口 ---------- */
 function write(text){
   if (!text) return;
   out.appendChild(document.createTextNode(text));
@@ -137,21 +217,27 @@ function line(text){ write(text + "\n"); }
 function rule(text){ line(""); line("---------- " + text + " ----------"); }
 function status(text){ st.textContent = text || ""; }
 
-/* ---------- firmware list ---------- */
-async function loadList(){
+el("clr").addEventListener("click", () => { out.textContent = ""; });
+el("dl").addEventListener("click", () => {
+  const d = new Date(), p = (v) => String(v).padStart(2, "0");
+  const stamp = d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+  const blob = new Blob([out.textContent], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "galaxy-rvr-log-" + stamp + ".txt";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+/* ---------- 固件信息 ---------- */
+async function loadFirmware(){
   const resp = await fetch("./firmwares.json", { cache: "no-store" });
   if (!resp.ok) throw new Error("HTTP " + resp.status);
   const cfg = await resp.json();
   BOARD = cfg.board || {};
-  LIST = cfg.firmwares || [];
-  if (!LIST.length) throw new Error("empty firmware list");
-  sel.innerHTML = "";
-  for (const fw of LIST){
-    const o = document.createElement("option");
-    o.value = LIST.indexOf(fw);
-    o.textContent = fw.version + (fw.date ? " (" + fw.date + ")" : "");
-    sel.appendChild(o);
-  }
+  fw = (cfg.firmwares || [])[0];
+  if (!fw) throw new Error("empty firmware list");
+  fwline.textContent = T("Firmware in this page: ", "本页固件：") + fw.version + (fw.date ? " (" + fw.date + ")" : "");
 }
 
 function hexToBytes(hex){
@@ -161,14 +247,13 @@ function hexToBytes(hex){
   return b;
 }
 
-/* ---------- serial session ---------- */
+/* ---------- 串口会话 ---------- */
 async function startMonitor(){
   if (!port) return;
   await port.open({ baudRate: BAUD });
   monitoring = true;
   monitorReader = port.readable.getReader();
-  rule(T("serial opened at 115200 - set the switch to Run and power-cycle to see the full boot log",
-         "串口已打开（115200）——把开关拨回 Run 并重新上电，可看到完整启动日志"));
+  rule(T("serial open at 115200", "串口已打开（115200）"));
   const decoder = new TextDecoder("utf-8", { fatal: false });
   try {
     for (;;){
@@ -192,7 +277,7 @@ async function stopMonitor(){
   monitorReader = null;
 }
 
-/* ---------- flash ---------- */
+/* ---------- 烧录 ---------- */
 go.addEventListener("click", async () => {
   go.disabled = true;
   bar.style.width = "0%";
@@ -200,12 +285,10 @@ go.addEventListener("click", async () => {
   out.textContent = "";
   let transport = null;
   try {
-    const fw = LIST[+sel.value];
-    if (!fw) throw new Error(T("Select a firmware version first.", "请先选择固件版本。"));
+    if (!fw) throw new Error(T("Firmware list not loaded yet.", "固件列表还没加载好。"));
     if (!navigator.serial) throw new Error(T("This page needs Web Serial. Please open it in Chrome or Edge on a computer.",
       "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"));
 
-    // release the port if the serial session from a previous flash is still running
     if (monitoring){
       status(T("Closing the serial session of the previous flash…", "正在关闭上一次烧录打开的串口…"));
       await stopMonitor();
@@ -280,11 +363,11 @@ go.addEventListener("click", async () => {
     bar.style.width = "100%";
     status(T("Done. Opening the serial port…", "烧录完成，正在打开串口…"));
 
-    // hand over to the serial session: the board has just been reset, so its
-    // boot banner (including the version) lands in the window above
+    // 交给串口会话：主板刚复位，启动日志（含版本号）会落在同一个窗口里
     await sleep(300);
     await startMonitor();
     status(T("Done - firmware flashed, serial port open.", "完成——固件已烧录，串口已打开。"));
+    showStep(3);
   } catch (e) {
     status(T("Failed: ", "失败：") + (e && e.message ? e.message : e));
     line(String(e && e.message ? e.message : e));
@@ -294,7 +377,8 @@ go.addEventListener("click", async () => {
   }
 });
 
-loadList().catch(e => { status(T("Failed: ", "失败：") + e.message); line(String(e && e.message ? e.message : e)); });
+showStep(1);
+loadFirmware().catch(e => { status(T("Failed: ", "失败：") + e.message); });
 </script>
 
 <script>
