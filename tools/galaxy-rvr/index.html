@@ -43,6 +43,7 @@
   .nav button.next{background:#00a04f;color:#fff}
   .nav button.back{background:#eef1f4;color:#33414f}
   .nav button.ghost{visibility:hidden}
+  .nav button:disabled{background:#e2e7ec;color:#9aa5b1;cursor:not-allowed}
   /* ---- 共用输出窗口（烧录信息 + 串口日志）---- */
   .console{margin:16px 0 4px}
   .console .tools{display:flex;gap:8px;margin-bottom:7px}
@@ -76,8 +77,8 @@
 
   <!-- ============ 第 1 步 ============ -->
   <section class="panel active" id="p1">
-    <p class="lead" data-en="Connect the main board to your computer with a <b>USB A to B</b> cable (not the Type-C one), then set the mode switch to the <b>Upload</b> position."
-       data-zh="用 <b>USB A 转 B</b> 线（不是 Type-C 那根）把主板连到电脑，然后把模式开关拨到 <b>Upload</b> 位置。"></p>
+    <p class="lead" data-en="Turn on the rover, connect the main board to your computer with a <b>USB A to B</b> cable (not the Type-C one), then set the mode switch to the <b>Upload</b> position."
+       data-zh="打开火星车的电源开关，用 <b>USB A 转 B</b> 线（不是 Type-C 那根）把主板连到电脑，然后把模式开关拨到 <b>Upload</b> 位置。"></p>
     <figure>
       <img src="img/camera_upload.jpg" alt="Upload switch">
       <figcaption data-en="Set the switch to UPLOAD" data-zh="把开关拨到 UPLOAD"></figcaption>
@@ -90,8 +91,8 @@
 
   <!-- ============ 第 2 步 ============ -->
   <section class="panel" id="p2">
-    <p class="lead" data-en="Click the button below and pick the port of your board (<b>USB-SERIAL CH340</b>) in the dialog. Do not unplug the cable while it is writing."
-       data-zh="点下面的按钮，在弹窗里选主板对应的串口（<b>USB-SERIAL CH340</b>）。写入过程中不要拔线。"></p>
+    <p class="lead" data-en="Click the button below and pick the port of your board in the dialog - it is listed as <b>Arduino UNO R3</b> on the official board, or <b>USB-SERIAL CH340</b> on CH340 based boards. Do not unplug the cable while it is writing."
+       data-zh="点下面的按钮，在弹窗里选主板对应的串口——官方板显示为 <b>Arduino UNO R3</b>，CH340 板显示为 <b>USB-SERIAL CH340</b>，二选一。写入过程中不要拔线。"></p>
     <p class="fwline" id="fwline"></p>
     <button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
     <p class="notice" id="notice" data-en="This page needs Web Serial. Please open it in Chrome or Edge on a computer." data-zh="本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"></p>
@@ -113,7 +114,7 @@
     </figure>
     <div class="nav">
       <button class="nav-btn back" data-go="2" data-en="Back" data-zh="上一步"></button>
-      <button class="nav-btn next" id="again" data-en="Flash again" data-zh="重新烧录"></button>
+      <button class="nav-btn next" disabled data-en="Next" data-zh="下一步"></button>
     </div>
   </section>
 
@@ -137,8 +138,8 @@
   </details>
   <details>
     <summary data-en="The board does not show up" data-zh="连接不上主板"></summary>
-    <p data-en="Close other programs that are using the serial port (Arduino IDE, a serial monitor, another browser tab - including the Serial Monitor page of this site). Check the switch is still on <b>Upload</b>, try another USB cable or port, and make sure the USB serial driver is installed: Windows Device Manager should list <b>USB-SERIAL CH340</b>."
-       data-zh="关掉其他正在占用串口的程序（Arduino IDE、串口监视器、另一个浏览器标签页——包括本站的串口监视器页面）。确认开关仍在 <b>Upload</b>，换一根 USB 线或换个 USB 口试试，并装好 USB 串口驱动：Windows 设备管理器里应能看到 <b>USB-SERIAL CH340</b>。"></p>
+    <p data-en="Close other programs that are using the serial port (Arduino IDE, a serial monitor, another browser tab - including the Serial Monitor page of this site). Check the switch is still on <b>Upload</b>, try another USB cable or port, and make sure the USB serial driver is installed: Windows Device Manager should list <b>Arduino UNO R3</b> or <b>USB-SERIAL CH340</b>."
+       data-zh="关掉其他正在占用串口的程序（Arduino IDE、串口监视器、另一个浏览器标签页——包括本站的串口监视器页面）。确认开关仍在 <b>Upload</b>，换一根 USB 线或换个 USB 口试试，并装好 USB 串口驱动：Windows 设备管理器里应能看到 <b>Arduino UNO R3</b> 或 <b>USB-SERIAL CH340</b>。"></p>
   </details>
 </div>
 
@@ -150,9 +151,9 @@
        data-zh="可以。拔下 USB 再插上，开关保持在 <b>Upload</b>，再点一次按钮即可；重复烧录不会损坏火星车。"></p>
   </details>
   <details>
-    <summary data-en="The port list has no CH340 entry" data-zh="串口列表里没有 CH340"></summary>
-    <p data-en="Install the <b>CH340</b> USB serial driver, then reload this page. If it still does not appear, try another USB cable (some cables are charge-only) and another USB port."
-       data-zh="装一下 <b>CH340</b> 串口驱动，然后刷新本页。还是没有的话，换一根 USB 线（有些线只能充电）和另一个 USB 口试试。"></p>
+    <summary data-en="No board shows up in the port list" data-zh="串口列表里找不到主板"></summary>
+    <p data-en="The official board shows up as <b>Arduino UNO R3</b>; a CH340 board shows up as <b>USB-SERIAL CH340</b> - if neither is listed, install the CH340 USB serial driver and reload this page. If it still does not appear, try another USB cable (some cables are charge-only) and another USB port."
+       data-zh="官方板显示为 <b>Arduino UNO R3</b>，CH340 板显示为 <b>USB-SERIAL CH340</b>——两个都没有的话，装一下 CH340 串口驱动再刷新本页。还是没有，换一根 USB 线（有些线只能充电）和另一个 USB 口试试。"></p>
   </details>
 </div>
 
@@ -233,13 +234,6 @@ function showStep(n){
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => showStep(+b.dataset.go)));
 el("si1").addEventListener("click", () => showStep(1));
 el("si2").addEventListener("click", () => { if (step > 2) showStep(2); });
-el("again").addEventListener("click", async () => {
-  if (monitoring) await stopMonitor();
-  out.textContent = "";
-  status("");
-  bar.style.width = "0%";
-  showStep(2);
-});
 
 /* ---------- 输出窗口 ---------- */
 function write(text){
