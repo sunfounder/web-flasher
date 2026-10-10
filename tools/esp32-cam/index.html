@@ -49,12 +49,10 @@
   <p class="ver" data-en="ESP32-CAM &middot; 4MB flash &middot; factory image, written from 0x0" data-zh="ESP32-CAM &middot; 4MB Flash &middot; 出厂整包镜像，从 0x0 烧录"></p>
 
   <ol>
-    <li data-en="Wire the camera to a <b>USB-TTL adapter</b> (or a flashing jig): TX&harr;RX, RX&harr;TX, 5V, GND. Tie <b>GPIO0 to GND</b>, then power the module up (or press Reset) to enter download mode."
-        data-zh="用 <b>USB-TTL</b>（或烧录夹具）接摄像头的 UART：TX&harr;RX、RX&harr;TX、5V、GND；把 <b>GPIO0 接到 GND</b> 后给模块上电（或按一下复位），进入下载模式。"></li>
+    <li data-en="Connect the module with the <b>dedicated programmer</b>." data-zh="使用<b>专用烧录器</b>连接模块。"></li>
     <li data-en="Pick the firmware version below and check the parameters shown." data-zh="在下面选择固件版本，确认显示的烧录参数。"></li>
-    <li data-en="Click <b>Connect &amp; Flash</b> and choose the serial port of the USB-TTL adapter in the dialog." data-zh="点 <b>连接并烧录</b>，在弹窗里选 USB-TTL 对应的串口。"></li>
-    <li data-en="When it reaches 100%, unplug the USB and plug it back in - a web page cannot hard-reset the module, so this step is required." data-zh="进度到 100% 后，拔下 USB 再插上——网页无法触发硬复位，这一步必须做。"></li>
-    <li data-en="Join its WiFi (<b>AI Camera-xxxxxx</b>) and open <b>http://192.168.4.1</b> to check the version." data-zh="连上它的 WiFi（<b>AI Camera-xxxxxx</b>），打开 <b>http://192.168.4.1</b> 核对版本号。"></li>
+    <li data-en="Click <b>Connect &amp; Flash</b> and choose the port of the programmer in the dialog." data-zh="点 <b>连接并烧录</b>，在弹窗里选烧录器对应的串口。"></li>
+    <li data-en="When it reaches 100%, this page opens the serial port by itself (115200) - just read the log below to confirm the module booted." data-zh="进度到 100% 后，本页会<b>自动打开串口</b>（115200），直接看下面的日志确认模块启动即可。"></li>
   </ol>
 
   <p class="warn" data-en="&#9888;&#65039; The camera on a GalaxyRVR cannot be flashed this way: on the rover its UART is wired to the UNO main board. Update that one over the air instead - see <a href='https://docs.sunfounder.com/projects/galaxy-rvr/en/latest/update_firmware.html#updating-the-esp32-cam-firmware' target='_blank' rel='noopener'>Updating the ESP32 CAM Firmware</a>."
@@ -96,6 +94,11 @@
        data-zh="拔掉 USB、松开 GPIO0，重新上电。还不行就做工厂复位：短接 <b>IO13</b> 和 <b>IO15</b>，按一下复位并松开，等大灯快闪两下，松开短接再按一次复位。"></p>
   </details>
   <details>
+    <summary data-en="The log stays empty after flashing" data-zh="烧录完成了，但日志一直是空的"></summary>
+    <p data-en="The module is still in download mode. If your programmer uses a <b>GPIO0</b> jumper, release it (or unplug and replug the module) and power the module again - only then does the firmware start and print its boot log."',
+       data-zh="模块还在下载模式。如果你用的是要手动短接 <b>GPIO0</b> 的烧录器，先松开它（或把模块断电再上电），固件才会开始运行并打印启动日志。"></p>
+  </details>
+  <details>
     <summary data-en="Which firmware is on the page?" data-zh="页面上的固件是哪个版本？"></summary>
     <p data-en="Only released versions are listed, newest first. The same image is also attached to the <a href='https://github.com/sunfounder/ai-camera-firmware/releases' target='_blank' rel='noopener'>ai-camera-firmware releases</a> as <code>-factory.bin</code> (this page) and <code>-ota.bin</code> (for the phone/web OTA update)."
        data-zh="只列已发布的版本，新的在上面。同样的镜像也放在 <a href='https://github.com/sunfounder/ai-camera-firmware/releases' target='_blank' rel='noopener'>ai-camera-firmware 的 Release</a> 里：<code>-factory.bin</code> 是本页用的整包，<code>-ota.bin</code> 是手机/网页 OTA 用的。"></p>
@@ -133,6 +136,35 @@ function status(text){ st.textContent = text || ""; }
 const terminal = { clean(){}, writeLine: d => line(d), write: d => write(d) };
 
 let LIST = [];
+let port = null;           // 记住端口，烧完/再烧都复用它
+let monitorReader = null;  // 非空表示串口会话正在跑
+let monitoring = false;
+
+/* ---------- 烧完自动开串口看日志 ---------- */
+async function startMonitor(port){
+  await port.open({ baudRate: 115200 });
+  monitoring = true;
+  monitorReader = port.readable.getReader();
+  line(T("\n--- serial open at 115200 ---", "\n--- 串口已打开（115200）---"));
+  const decoder = new TextDecoder("utf-8", { fatal: false });
+  try {
+    for (;;){
+      const res = await monitorReader.read();
+      if (res.done || !monitoring) break;
+      if (res.value && res.value.length) write(decoder.decode(res.value, { stream: true }));
+    }
+  } catch (e) { /* 端口关闭或拔出 */ }
+  finally { try { monitorReader.releaseLock(); } catch (e) {} monitorReader = null; }
+}
+
+async function stopMonitor(port){
+  monitoring = false;
+  const r = monitorReader;
+  if (r) { try { await r.cancel(); } catch (e) {} }
+  await sleep(60);
+  try { if (port) await port.close(); } catch (e) {} 
+  monitorReader = null;
+}
 
 async function loadList(){
   const resp = await fetch("./firmwares.json", { cache: "no-store" });
@@ -178,8 +210,12 @@ go.addEventListener("click", async () => {
     if (!navigator.serial) throw new Error(T("This page needs Web Serial. Please open it in Chrome or Edge on a computer.",
       "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"));
 
-    status(T("Choose the serial port of the USB-TTL adapter in the dialog…", "请在弹窗里选择 USB-TTL 对应的串口…"));
-    const port = await navigator.serial.requestPort();
+    // 上一次烧完开的串口会话先关掉；端口对象复用，不用重复弹窗
+    if (monitoring) await stopMonitor(port);
+    if (!port){
+      status(T("Choose the port of the programmer in the dialog…", "请在弹窗里选择烧录器对应的串口…"));
+      port = await navigator.serial.requestPort();
+    }
 
     status(T("Connecting to the module…", "正在连接模块…"));
     line(T("Connecting…", "正在连接…"));
@@ -211,9 +247,17 @@ go.addEventListener("click", async () => {
     bar.style.width = "100%";
     line(T("Flash written successfully.", "固件写入完成。"));
 
-    try { await loader.after("hard_reset"); } catch (e) { /* 适配器可能无法硬复位，忽略 */ }
+    try { await loader.after("hard_reset"); } catch (e) { /* 烧录器可能无法硬复位，忽略 */ }
     try { await loader.transport.disconnect(); } catch (e) {}
-    status(T("Done - unplug the USB and plug it back in, then release GPIO0.", "完成——拔下 USB 再插上，然后松开 GPIO0。"));
+    status(T("Done - opening the serial port…", "烧录完成，正在打开串口…"));
+    line(T("Flash done. Opening the serial port so you can watch the module boot.", "烧录完成。正在打开串口，可以直接看模块启动日志。"));
+    await sleep(300);
+    try {
+      await startMonitor(port);
+      status(T("Done - firmware flashed, serial port open.", "完成——固件已烧录，串口已打开。"));
+    } catch (e) {
+      status(T("Flashed, but the serial port could not be opened: ", "已烧录完成，但串口打不开：") + (e && e.message ? e.message : e));
+    }
   } catch (e) {
     status(T("Failed: ", "失败：") + (e && e.message ? e.message : e));
     line(String(e && e.stack || e));
