@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ESP32-CAM Firmware Flash</title>
+<title>AI Camera Firmware Flash</title>
 <link rel="icon" type="image/png" href="../../favicon.png">
 <link rel="apple-touch-icon" href="../../favicon.png">
 <style>
@@ -45,8 +45,8 @@
 
 <div class="wrap">
 <div class="card">
-  <h2 data-en="ESP32-CAM Firmware Flash" data-zh="ESP32-CAM 固件烧录"></h2>
-  <p class="ver" data-en="ESP32-CAM &middot; 4MB flash &middot; factory image, written from 0x0" data-zh="ESP32-CAM &middot; 4MB Flash &middot; 出厂整包镜像，从 0x0 烧录"></p>
+  <h2 data-en="AI Camera Firmware Flash" data-zh="AI Camera 固件烧录"></h2>
+  <p class="ver" data-en="AI Camera (ESP32-CAM) &middot; 4MB flash &middot; factory image, written from 0x0" data-zh="AI Camera（ESP32-CAM）&middot; 4MB Flash &middot; 出厂整包镜像，从 0x0 烧录"></p>
 
   <ol>
     <li data-en="Connect the module with the <b>dedicated programmer</b>." data-zh="使用<b>专用烧录器</b>连接模块。"></li>
@@ -282,7 +282,7 @@ loadList().catch(e => { status(T("Failed: ", "失败：") + e.message); line(Str
 <script>
 (function () {
   document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
-  document.title = T("ESP32-CAM Firmware Flash", "ESP32-CAM 固件烧录");
+  document.title = T("AI Camera Firmware Flash", "AI Camera 固件烧录");
   document.querySelectorAll("[data-en][data-zh]").forEach(function (el) {
     el.innerHTML = LANG === "zh" ? el.getAttribute("data-zh") : el.getAttribute("data-en");
   });

@@ -13,13 +13,13 @@
     },
     {
       "id": "esp32-cam",
-      "name": "ESP32-CAM 固件烧录",
-      "name_en": "ESP32-CAM Firmware Flash",
+      "name": "AI Camera 固件烧录",
+      "name_en": "AI Camera Firmware Flash",
       "version": "1.5.4",
-      "target": "ESP32-CAM（4MB Flash）",
-      "target_en": "ESP32-CAM (4MB flash)",
-      "desc": "摄像头固件整包烧录（USB-TTL + GPIO0）；车载的请走 OTA",
-      "desc_en": "Camera firmware factory image via USB-TTL + GPIO0; on a rover use OTA instead",
+      "target": "AI Camera（ESP32-CAM，4MB Flash）",
+      "target_en": "AI Camera (ESP32-CAM, 4MB flash)",
+      "desc": "AI Camera 固件整包烧录（专用烧录器）；车载的请走 OTA",
+      "desc_en": "AI Camera firmware factory image via the dedicated programmer; on a rover use OTA instead",
       "path": "tools/esp32-cam/"
     },
     {
