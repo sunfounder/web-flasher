@@ -6,6 +6,17 @@
 <title>GalaxyRVR Firmware Update</title>
 <link rel="icon" type="image/png" href="../../favicon.png">
 <link rel="apple-touch-icon" href="../../favicon.png">
+<script>
+/* 语言判定放最前面：后面按语言挑视频、换文案都要用，且必须赶在 <video> 被解析之前 */
+function getLang() {
+  var params = new URLSearchParams(window.location.search);
+  var urlLang = params.get("lang");
+  if (urlLang === "zh" || urlLang === "en") return urlLang;
+  var userLang = navigator.language || navigator.userLanguage || "en";
+  return userLang.toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+window.LANG = getLang();
+</script>
 <style>
   *{box-sizing:border-box}
   body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f4f6f8;margin:0;padding:36px 16px 60px;color:#222;line-height:1.55}
@@ -122,7 +133,9 @@
     <ol class="lead steps-mini" data-en="<li>Turn the power switch on.</li><li>Switch the mode to <b>Run</b> and press the <b>Reset</b> button on the R3 board.</li><li>The bottom light strip will flash <b>green</b>, indicating a successful startup.</li>"
         data-zh="<li>打开电源开关。</li><li>把模式开关拨到 <b>Run</b>，再按一下 R3 板上的 <b>Reset</b> 键。</li><li>火星车底部灯带会闪<b>绿色</b>，说明启动成功。</li>"></ol>
     <figure>
-      <video src="img/check_firmware.mp4" controls muted playsinline preload="metadata"></video>
+      <!-- 视频分中英两版：src 由脚本按语言填，浏览器只会去下当前语言那个 -->
+      <video controls muted playsinline preload="metadata"
+             data-src-en="img/check_firmware.mp4" data-src-zh="img/check_firmware_zh.mp4"></video>
       <figcaption data-en="Check the firmware version" data-zh="检查固件版本"></figcaption>
     </figure>
     <div class="nav">
@@ -192,19 +205,23 @@
 </div>
 
 <script>
-function getLang() {
-  var params = new URLSearchParams(window.location.search);
-  var urlLang = params.get("lang");
-  if (urlLang === "zh" || urlLang === "en") return urlLang;
-  var userLang = navigator.language || navigator.userLanguage || "en";
-  return userLang.toLowerCase().startsWith("zh") ? "zh" : "en";
+// 视频按语言选：中英各一份，只填当前语言那个 src
+function applyLangVideo() {
+  var lang = window.LANG || getLang();
+  document.querySelectorAll("video[data-src-zh]").forEach(function (v) {
+    if (v.getAttribute("data-lang-video") === lang) return;
+    v.setAttribute("data-lang-video", lang);
+    v.setAttribute("src", v.getAttribute(lang === "zh" ? "data-src-zh" : "data-src-en"));
+  });
 }
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyLangVideo);
+else applyLangVideo();
 function toggleLang() {
   var url = new URL(window.location);
   url.searchParams.set("lang", getLang() === "zh" ? "en" : "zh");
   window.location.href = url.toString();
 }
-var LANG = getLang();
+var LANG = getLang();   // 与 <head> 里那次判定同一个值
 function T(en, zh) { return LANG === "zh" ? zh : en; }
 function el(id){ return document.getElementById(id); }
 </script>
