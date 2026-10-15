@@ -22,13 +22,15 @@
   .steps li.done{color:#41505f;border-top-color:#a9dcbf}
   .steps li.done .n{background:#a9dcbf}
   .steps li.done{cursor:pointer}
+  .steps li{cursor:pointer}
+  .steps li.active{cursor:default}
   /* ---- 步骤内容 ---- */
   .panel{display:none}
   .panel.active{display:block}
   .panel > p{margin:0 0 14px}
   .lead{font-size:16px}
   figure{margin:16px 0}
-  figure img{width:100%;max-width:520px;border-radius:8px;border:1px solid #e4e8ec;display:block}
+  figure img,figure video{width:100%;max-width:520px;border-radius:8px;border:1px solid #e4e8ec;display:block;background:#000}
   figcaption{font-size:13px;color:#77828e;margin-top:6px}
   .fwline{font-size:14px;color:#41505f;margin:0 0 10px}
   button.go{display:block;font-size:17px;padding:12px 24px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff}
@@ -46,9 +48,15 @@
   .nav button:disabled{background:#e2e7ec;color:#9aa5b1;cursor:not-allowed}
   /* ---- 共用输出窗口（烧录信息 + 串口日志）---- */
   .console{margin:16px 0 4px}
-  .console .tools{display:flex;gap:8px;margin-bottom:7px}
+  .console .tools{display:flex;align-items:center;gap:8px;margin-bottom:7px}
   .console .tools button{font-size:13px;padding:6px 12px;border:1px solid #ccd3da;background:#fff;border-radius:6px;cursor:pointer}
   .console .tools button:hover{background:#f4f7f9}
+  /* 串口连接状态（右上角）：未连接 = 绿色「连接」，已连接 = 红色「断开」 */
+  #link{margin-left:auto;font-weight:600;color:#00a04f;border-color:#00a04f}
+  #link:hover{background:#eaf7ef}
+  #link.linked{color:#d33;border-color:#d33}
+  #link.linked:hover{background:#fdecec}
+  #link:disabled{opacity:.5;cursor:not-allowed}
   #out{background:#111;color:#d8e0d8;font:13px/1.55 Consolas,"Courier New",monospace;height:300px;overflow:auto;padding:10px 12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;margin:0}
   /* ---- FAQ：卡片下面，跟随步骤 ---- */
   .faq{display:none;background:#fff;border:1px solid #e4e8ec;border-radius:14px;box-shadow:0 2px 12px rgba(16,32,48,.06);padding:18px 26px 8px;margin:18px 0 0}
@@ -72,7 +80,7 @@
   <ul class="steps" id="steps">
     <li id="si1" class="active"><span class="n">1</span><span data-en="Connect" data-zh="接线"></span></li>
     <li id="si2"><span class="n">2</span><span data-en="Flash" data-zh="烧录"></span></li>
-    <li id="si3"><span class="n">3</span><span data-en="Done" data-zh="完成"></span></li>
+    <li id="si3"><span class="n">3</span><span data-en="Debug" data-zh="调试"></span></li>
   </ul>
 
   <!-- ============ 第 1 步 ============ -->
@@ -106,15 +114,14 @@
 
   <!-- ============ 第 3 步 ============ -->
   <section class="panel" id="p3">
-    <p class="lead" data-en="Flashing is done. Set the mode switch back to its original position and press the <b>Reset</b> button on the R3 board - the window below then shows the rover booting."
-       data-zh="烧录完成。把模式开关拨回原来的位置，按一下 R3 板上的 <b>Reset</b> 键，下面的窗口就会显示火星车启动日志。"></p>
+    <p class="lead" data-en="Turn the power switch on. Switch the mode to <b>Run</b> and press the <b>Reset</b> button on the R3 board. The bottom light strip will flash <b>green</b>, indicating a successful startup."
+       data-zh="打开电源开关。把模式开关拨到 <b>Run</b>，再按一下 R3 板上的 <b>Reset</b> 键。火星车底部灯带会闪<b>绿色</b>，说明启动成功。"></p>
     <figure>
-      <img src="img/camera_run1.jpg" alt="Switch back">
-      <figcaption data-en="Set the switch back after flashing" data-zh="烧完把开关拨回去"></figcaption>
+      <video src="img/check_firmware.mp4" controls muted playsinline preload="metadata"></video>
+      <figcaption data-en="Check the firmware version" data-zh="检查固件版本"></figcaption>
     </figure>
     <div class="nav">
       <button class="nav-btn back" data-go="2" data-en="Back" data-zh="上一步"></button>
-      <button class="nav-btn next" disabled data-en="Next" data-zh="下一步"></button>
     </div>
   </section>
 
@@ -123,6 +130,7 @@
     <div class="tools">
       <button id="dl" data-en="Download log" data-zh="下载日志"></button>
       <button id="clr" data-en="Clear" data-zh="清空"></button>
+      <button id="link" data-en="Connect" data-zh="链接"></button>
     </div>
     <pre id="out"></pre>
   </div>
@@ -154,7 +162,7 @@
 </div>
 
 <div class="faq" id="f3" data-step="3">
-  <h3 data-en="Step 3 FAQ" data-zh="第 3 步常见问题"></h3>
+  <h3 data-en="Step 3 FAQ (Debug)" data-zh="第 3 步常见问题（调试）"></h3>
   <details>
     <summary data-en="How do I check the firmware version?" data-zh="怎么核对固件版本？"></summary>
     <p data-en="The first line of the log is <b>GalaxyRVR version X.Y.Z</b>, followed by <b>Initialzing...</b> and <b>Okie!</b>. This page flashes <b>2.0.2</b>."
@@ -164,6 +172,11 @@
     <summary data-en="The light strip under the rover flashes red, or the camera version in the log is old" data-zh="火星车底部灯带闪红灯，或日志里摄像头版本偏低"></summary>
     <p data-en="<b>ESP32 firmware version X.Y.Z</b> in the window above is the ESP32-CAM firmware. If it is older than <b>1.5.4</b>, or the strip under the rover does not flash <b>green</b> on boot, the camera firmware needs updating - see <a href='https://docs.sunfounder.com/projects/galaxy-rvr/en/latest/update_firmware.html#updating-the-esp32-cam-firmware' target='_blank' rel='noopener'>Updating the ESP32 CAM Firmware</a>."
        data-zh="上面窗口里的 <b>ESP32 firmware version X.Y.Z</b> 就是 ESP32-CAM 的固件版本。如果低于 <b>1.5.4</b>，或者开机时火星车底部灯带不是<b>绿色</b>闪烁，说明摄像头固件需要更新——详见 <a href='https://docs.sunfounder.com/projects/galaxy-rvr/zh-cn/latest/update_firmware.html#esp32-cam' target='_blank' rel='noopener'>更新 ESP32 CAM 固件</a>。"></p>
+  </details>
+  <details>
+    <summary data-en="What is the Connect button for?" data-zh="右上角那个「链接」按钮是干什么的？"></summary>
+    <p data-en="It opens the rover's serial port as a plain serial monitor at <b>115200</b> - no flashing needed. If the rover is already connected (the button is red and reads <b>Disconnect</b>), click it and confirm to release the port, so another program or the flashing step can use it."
+       data-zh="它把火星车的串口直接当成串口工具打开（<b>115200</b>），不需要先烧录。如果显示为红色的<b>断开</b>，说明串口已经被本页占用，点一下并确认即可释放，让别的程序或烧录步骤使用。"></p>
   </details>
   <details>
     <summary data-en="The serial window stays empty" data-zh="串口窗口没有输出"></summary>
@@ -202,8 +215,9 @@ const BAUD = 115200; // the rover only ever talks at 115200, so it is fixed here
 
 let fw = null, BOARD = {};
 let port = null;          // kept between the flash and the serial session
-let monitorReader = null; // non-null while the serial session is running
-let monitoring = false;
+let reading = null;       // the live reader of the serial session
+let monitoring = false;   // true while the serial session is running
+let portBusy = false;     // true while a session is being opened/closed, or while flashing
 let step = 1;
 
 /* ---------- 步骤切换 ---------- */
@@ -228,8 +242,8 @@ function showStep(n){
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => showStep(+b.dataset.go)));
-el("si1").addEventListener("click", () => showStep(1));
-el("si2").addEventListener("click", () => { if (step > 2) showStep(2); });
+// 3 个步骤都可以直接点：只读调试的用户可以跳过烧录，直接进第 3 步连串口
+[1, 2, 3].forEach(n => el("si" + n).addEventListener("click", () => { if (step !== n) showStep(n); }));
 
 /* ---------- 输出窗口 ---------- */
 function write(text){
@@ -272,51 +286,133 @@ function hexToBytes(hex){
 }
 
 /* ---------- 串口会话 ---------- */
+// 右上角链接状态：已连接 = 红色「断开」，未连接 = 绿色「链接」
+function isLinked(){ return monitoring && !!reading; }
+function updateLink(){
+  const b = el("link");
+  const on = isLinked();
+  b.classList.toggle("linked", on);
+  b.textContent = on ? T("Disconnect", "断开") : T("Connect", "链接");
+  b.title = on
+    ? T("Serial port open - click to disconnect", "串口已连接——点击断开")
+    : T("Use the serial port without flashing", "不烧录也能当串口工具用");
+}
+
+// 打开串口并在后台读日志：readLoop 不 await，调用方（烧录流程）才能马上收尾
 async function startMonitor(){
   if (!port) return;
-  await port.open({ baudRate: BAUD });
-  monitoring = true;
-  monitorReader = port.readable.getReader();
-  rule(T("serial open at 115200", "串口已打开（115200）"));
+  const keepReading = port;
+  portBusy = true;
+  try {
+    await port.open({ baudRate: BAUD });
+    monitoring = true;
+    reading = port.readable.getReader();
+    rule(T("serial open at 115200", "串口已打开（115200）"));
+  } finally {
+    portBusy = false;
+    updateLink();
+  }
+  readLoop(keepReading).catch(() => {});
+}
+
+async function readLoop(keepReading){
   const decoder = new TextDecoder("utf-8", { fatal: false });
   try {
     for (;;){
-      const res = await monitorReader.read();
+      const r = reading;
+      if (!r) break;
+      const res = await r.read();
       if (res.done || !monitoring) break;
       if (res.value && res.value.length) write(decoder.decode(res.value, { stream: true }));
     }
   } catch (e) { /* port closed or unplugged */ }
   finally {
-    try { monitorReader.releaseLock(); } catch (e) {}
-    monitorReader = null;
+    const r = reading;
+    reading = null;
+    if (r) { try { r.releaseLock(); } catch (e) {} }
+    monitoring = false;
+    // 只有当前这条循环还属于这个端口时才更新按钮，避免打断新会话
+    if (keepReading === port) updateLink();
   }
+}
+
+// 读循环停了但串口还没关干净时，烧录前先把它关掉（monitoring 为 true 时读循环正拿着端口，不能抢）
+async function closeIdlePort(){
+  if (monitoring || !port) return;
+  let r = null;
+  try { r = reading; reading = null; } catch (e) { r = null; }
+  try { if (r) await r.cancel(); } catch (e) {}
+  await sleep(60);
+  try { if (port.readable) await port.close(); } catch (e) {}
 }
 
 async function stopMonitor(){
   monitoring = false;
-  const r = monitorReader;
+  monitorReader = null;            // 让读循环自己退出，链接状态保持红色直到真正关闭
+  portBusy = true;
+  const r = reading;
+  reading = null;
   if (r){ try { await r.cancel(); } catch (e) {} }
   await sleep(60);
   try { if (port) await port.close(); } catch (e) {}
-  monitorReader = null;
+  portBusy = false;
+  updateLink();
 }
+
+/* ---------- 右上角「链接 / 断开」：把串口当串口工具用 ---------- */
+el("link").addEventListener("click", async () => {
+  const b = el("link");
+  if (portBusy) return;
+  if (isLinked()){
+    if (!confirm(T("Disconnect the rover's serial port?", "确定断开火星车的串口吗？"))) return;
+    b.disabled = true;
+    try {
+      await stopMonitor();
+      rule(T("serial closed", "串口已断开"));
+    } catch (e) {
+      line(String(e && e.message ? e.message : e));
+    } finally {
+      b.disabled = false;
+      updateLink();
+    }
+    return;
+  }
+  b.disabled = true;
+  try {
+    if (!navigator.serial) throw new Error(T("This page needs Web Serial. Please open it in Chrome or Edge on a computer.",
+      "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"));
+    if (monitoring) await stopMonitor();   // 上一次读循环还没收干净
+    status(T("Choose the serial port of your board in the dialog…", "请在弹窗里选择主板对应的串口…"));
+    if (!port) port = await navigator.serial.requestPort();
+    await startMonitor();          // 打开后拉 DTR，主板会复位一下再开始输出日志
+    status(T("Serial port open - the window below shows the rover log.", "串口已连接——下面的窗口显示火星车日志。"));
+  } catch (e) {
+    line(String(e && e.message ? e.message : e));
+    status(T("Failed: ", "失败：") + (e && e.message ? e.message : e));
+  } finally {
+    portBusy = false;
+    b.disabled = false;
+    updateLink();
+  }
+});
 
 /* ---------- 烧录 ---------- */
 go.addEventListener("click", async () => {
   go.disabled = true;
+  portBusy = true;
+  el("link").disabled = true;
   bar.style.width = "0%";
   status("");
   out.textContent = "";
   let transport = null;
   try {
+    if (monitoring) throw new Error(T("The serial port is connected - click Disconnect in the top right first, then flash.",
+      "串口已连接——请先点右上角「断开」，再烧录。"));
     if (!fw) throw new Error(T("Firmware list not loaded yet.", "固件列表还没加载好。"));
     if (!navigator.serial) throw new Error(T("This page needs Web Serial. Please open it in Chrome or Edge on a computer.",
       "本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"));
 
-    if (monitoring){
-      status(T("Closing the serial session of the previous flash…", "正在关闭上一次烧录打开的串口…"));
-      await stopMonitor();
-    }
+    await closeIdlePort();   // 上一次调试留下的串口没收干净就先关掉
 
     status(T("Reading firmware file…", "读取固件文件…"));
     line(T("Reading ", "读取 ") + fw.file);
@@ -389,7 +485,7 @@ go.addEventListener("click", async () => {
 
     // 交给串口会话：主板刚复位，启动日志（含版本号）会落在同一个窗口里
     await sleep(300);
-    await startMonitor();
+    await startMonitor();          // startMonitor 内部自己管 portBusy
     status(T("Done - firmware flashed, serial port open.", "完成——固件已烧录，串口已打开。"));
     showStep(3);
   } catch (e) {
@@ -398,10 +494,14 @@ go.addEventListener("click", async () => {
   } finally {
     if (transport) { try { await transport.close(); } catch (e) {} }
     go.disabled = false;
+    el("link").disabled = false;   // 烧录过程中锁住「链接/断开」
+    portBusy = false;
+    updateLink();
   }
 });
 
 showStep(1);
+updateLink();
 loadFirmware().catch(e => { status(T("Failed: ", "失败：") + e.message); });
 </script>
 
