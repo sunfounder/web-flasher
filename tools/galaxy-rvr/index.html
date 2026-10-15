@@ -29,8 +29,13 @@
   .panel.active{display:block}
   .panel > p{margin:0 0 14px}
   .lead{font-size:16px}
+  /* 第 3 步里的 3 个小步骤：换行 + 编号 */
+  .steps-mini{margin:0 0 16px;padding-left:26px}
+  .steps-mini li{margin:0 0 6px}
+  .steps-mini li::marker{font-weight:700;color:#00a04f}
   figure{margin:16px 0}
-  figure img,figure video{width:100%;max-width:520px;border-radius:8px;border:1px solid #e4e8ec;display:block;background:#000}
+  figure img{width:100%;max-width:520px;border-radius:8px;border:1px solid #e4e8ec;display:block}
+  figure video{width:100%;border-radius:8px;border:1px solid #e4e8ec;display:block;background:#000}
   figcaption{font-size:13px;color:#77828e;margin-top:6px}
   .fwline{font-size:14px;color:#41505f;margin:0 0 10px}
   button.go{display:block;font-size:17px;padding:12px 24px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff}
@@ -114,8 +119,8 @@
 
   <!-- ============ 第 3 步 ============ -->
   <section class="panel" id="p3">
-    <p class="lead" data-en="Turn the power switch on. Switch the mode to <b>Run</b> and press the <b>Reset</b> button on the R3 board. The bottom light strip will flash <b>green</b>, indicating a successful startup."
-       data-zh="打开电源开关。把模式开关拨到 <b>Run</b>，再按一下 R3 板上的 <b>Reset</b> 键。火星车底部灯带会闪<b>绿色</b>，说明启动成功。"></p>
+    <ol class="lead steps-mini" data-en="<li>Turn the power switch on.</li><li>Switch the mode to <b>Run</b> and press the <b>Reset</b> button on the R3 board.</li><li>The bottom light strip will flash <b>green</b>, indicating a successful startup.</li>"
+        data-zh="<li>打开电源开关。</li><li>把模式开关拨到 <b>Run</b>，再按一下 R3 板上的 <b>Reset</b> 键。</li><li>火星车底部灯带会闪<b>绿色</b>，说明启动成功。</li>"></ol>
     <figure>
       <video src="img/check_firmware.mp4" controls muted playsinline preload="metadata"></video>
       <figcaption data-en="Check the firmware version" data-zh="检查固件版本"></figcaption>
@@ -130,7 +135,7 @@
     <div class="tools">
       <button id="dl" data-en="Download log" data-zh="下载日志"></button>
       <button id="clr" data-en="Clear" data-zh="清空"></button>
-      <button id="link" data-en="Connect" data-zh="链接"></button>
+      <button id="link" data-en="Connect" data-zh="连接"></button>
     </div>
     <pre id="out"></pre>
   </div>
@@ -174,7 +179,7 @@
        data-zh="上面窗口里的 <b>ESP32 firmware version X.Y.Z</b> 就是 ESP32-CAM 的固件版本。如果低于 <b>1.5.4</b>，或者开机时火星车底部灯带不是<b>绿色</b>闪烁，说明摄像头固件需要更新——详见 <a href='https://docs.sunfounder.com/projects/galaxy-rvr/zh-cn/latest/update_firmware.html#esp32-cam' target='_blank' rel='noopener'>更新 ESP32 CAM 固件</a>。"></p>
   </details>
   <details>
-    <summary data-en="What is the Connect button for?" data-zh="右上角那个「链接」按钮是干什么的？"></summary>
+    <summary data-en="What is the Connect button for?" data-zh="右上角那个「连接」按钮是干什么的？"></summary>
     <p data-en="It opens the rover's serial port as a plain serial monitor at <b>115200</b> - no flashing needed. If the rover is already connected (the button is red and reads <b>Disconnect</b>), click it and confirm to release the port, so another program or the flashing step can use it."
        data-zh="它把火星车的串口直接当成串口工具打开（<b>115200</b>），不需要先烧录。如果显示为红色的<b>断开</b>，说明串口已经被本页占用，点一下并确认即可释放，让别的程序或烧录步骤使用。"></p>
   </details>
@@ -286,13 +291,13 @@ function hexToBytes(hex){
 }
 
 /* ---------- 串口会话 ---------- */
-// 右上角链接状态：已连接 = 红色「断开」，未连接 = 绿色「链接」
+// 右上角连接状态：已连接 = 红色「断开」，未连接 = 绿色「连接」
 function isLinked(){ return monitoring && !!reading; }
 function updateLink(){
   const b = el("link");
   const on = isLinked();
   b.classList.toggle("linked", on);
-  b.textContent = on ? T("Disconnect", "断开") : T("Connect", "链接");
+  b.textContent = on ? T("Disconnect", "断开") : T("Connect", "连接");
   b.title = on
     ? T("Serial port open - click to disconnect", "串口已连接——点击断开")
     : T("Use the serial port without flashing", "不烧录也能当串口工具用");
@@ -348,7 +353,7 @@ async function closeIdlePort(){
 
 async function stopMonitor(){
   monitoring = false;
-  monitorReader = null;            // 让读循环自己退出，链接状态保持红色直到真正关闭
+  reading = null;                  // 让读循环自己退出，连接状态保持红色直到真正关闭
   portBusy = true;
   const r = reading;
   reading = null;
@@ -359,7 +364,7 @@ async function stopMonitor(){
   updateLink();
 }
 
-/* ---------- 右上角「链接 / 断开」：把串口当串口工具用 ---------- */
+/* ---------- 右上角「连接 / 断开」：把串口当串口工具用 ---------- */
 el("link").addEventListener("click", async () => {
   const b = el("link");
   if (portBusy) return;
@@ -494,7 +499,7 @@ go.addEventListener("click", async () => {
   } finally {
     if (transport) { try { await transport.close(); } catch (e) {} }
     go.disabled = false;
-    el("link").disabled = false;   // 烧录过程中锁住「链接/断开」
+    el("link").disabled = false;   // 烧录过程中锁住「连接/断开」
     portBusy = false;
     updateLink();
   }
