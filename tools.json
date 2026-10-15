@@ -36,7 +36,7 @@
       "id": "qc-tool",
       "name": "思天 QC 工具",
       "name_en": "QC Tool",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "target": "ESP32-S3（LilyGO T-Display-S3，16MB Flash）",
       "target_en": "ESP32-S3 (LilyGO T-Display-S3, 16MB flash)",
       "desc": "PCBA/整机出厂固件烧录（整包镜像，从 0x0 起烧）",

@@ -1,6 +1,22 @@
 {
   "firmwares": [
     {
+      "id": "qc-tool-v1.0.5",
+      "version": "1.0.5",
+      "date": "2026-10-15",
+      "note": "新增 OLED 测试 app（I2C SSD1306 128x64，全检 6 图案 / 0X3C·0X3D 自动识别 / 热插拔自动重连）",
+      "flashMode": "dio",
+      "flashFreq": "80m",
+      "flashSize": "16MB",
+      "eraseAll": true,
+      "segments": [
+        {
+          "file": "firmwares/qc-tool-v1.0.5-merged.bin",
+          "address": 0
+        }
+      ]
+    },
+    {
       "id": "qc-tool-v1.0.4",
       "version": "1.0.4",
       "date": "2026-09-10",
