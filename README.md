@@ -72,7 +72,11 @@ esptool --chip esp32s3 merge_bin --flash_mode dio --flash_freq 80m --flash_size 
 - 右上角语言按钮只改 URL 的 `lang` 参数并刷新；客户页之间互相跳转时要把 `lang` 带下去；
 - `tools.json` 里 `name_en` / `target_en` / `desc_en` 缺省就回落到中文，索引页两种语言都能显示；
 - 固件清单里文案字段用 `note_en`/`note_zh`；
-- JS 里跑出来的状态文字（"写入固件… 42%"、弹窗）用页面里的 `T(en, zh)` 取，不能只写一份。
+- JS 里跑出来的状态文字（"写入固件… 42%"、弹窗）用页面里的 `T(en, zh)` 取，不能只写一份；
+- 一个页面里**成对的多媒体文件**（如中英两版演示视频）不要写两个 `<source>`：浏览器会先请求第一个再中断
+  换第二个，白下一次。做法是 <video> 只放 `data-src-zh` / `data-src-en`，由 JS 按语言填唯一的 `src`；
+- 步骤类页面把步骤写进地址栏 hash（`#step1/#step2/#step3`），刷新/前进后退都在当前步骤，
+  也方便直接分享「打开就是调试」的链接：`?lang=zh#step3`。
 
 ## 新增一个 AVR（Arduino UNO）工具
 
