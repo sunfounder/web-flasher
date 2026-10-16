@@ -83,6 +83,19 @@ window.LANG = getLang();
   details summary{cursor:pointer;font-weight:600;font-size:14px}
   details p{color:#555;font-size:14px;margin:8px 0 0;line-height:1.7}
   details p b{color:#333}
+  /* ---- 更新日志（卡片内最后一块，数据来自 firmwares.json 的 note_en/note_zh）---- */
+  .changelog{margin:18px 0 0;border-top:1px solid #e9edf1;padding-top:12px}
+  .changelog h3{font-size:15px;margin:0 0 8px;color:#41505f}
+  .changelog .ver{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:14px;margin:0 0 4px}
+  .changelog .ver .tag{font-weight:700;color:#00a04f}
+  .changelog .ver .date{color:#8b959f;font-size:12px}
+  .changelog .ver .now{background:#e7f6ec;color:#007a3d;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700}
+  .changelog .ver .old{background:#f1f3f5;color:#6b7683;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700}
+  .changelog ul{margin:0 0 10px;padding-left:20px;color:#4a5560;font-size:13px}
+  .changelog ul li{margin:0 0 3px}
+  .changelog .more{font-size:13px}
+  .changelog .more a{color:#00a04f;text-decoration:none;font-weight:600}
+  .changelog .more a:hover{text-decoration:underline}
   .lang-toggle{position:fixed;top:16px;right:16px;z-index:999;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:#1e293b}
   .lang-toggle:hover{background:#00a04f;color:#fff;border-color:#00a04f}
 </style>
@@ -157,6 +170,14 @@ window.LANG = getLang();
       <button id="link" data-en="Connect" data-zh="连接"></button>
     </div>
     <pre id="out"></pre>
+  </div>
+
+  <!-- 更新日志：内容由 firmwares.json 的 note_en/note_zh 渲染 -->
+  <div class="changelog" id="changelog" style="display:none">
+    <h3 data-en="What's new" data-zh="更新日志"></h3>
+    <div id="changelogBody"></div>
+    <p class="more"><a id="changelogMore" href="https://github.com/sunfounder/galaxy-rvr/releases" target="_blank" rel="noopener"
+       data-en="Full changelog on GitHub" data-zh="完整更新日志见 GitHub"></a></p>
   </div>
 </div>
 
@@ -241,7 +262,7 @@ const go = el("go"), bar = el("bar"), st = el("st"), out = el("out"), notice = e
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const BAUD = 115200; // the rover only ever talks at 115200, so it is fixed here
 
-let fw = null, BOARD = {};
+let fw = null, fwAll = [], BOARD = {};
 let port = null;          // kept between the flash and the serial session
 let reading = null;       // the live reader of the serial session
 let monitoring = false;   // true while the serial session is running
@@ -309,9 +330,31 @@ async function loadFirmware(){
   if (!resp.ok) throw new Error("HTTP " + resp.status);
   const cfg = await resp.json();
   BOARD = cfg.board || {};
-  fw = (cfg.firmwares || [])[0];
+  fwAll = cfg.firmwares || [];
+  fw = fwAll[0];
   if (!fw) throw new Error("empty firmware list");
   fwline.textContent = T("Firmware in this page: ", "本页固件：") + fw.version + (fw.date ? " (" + fw.date + ")" : "");
+  renderChangelog();
+}
+
+/* ---------- 更新日志：取 firmwares.json 里各版本的 note_en / note_zh ---------- */
+function renderChangelog(){
+  const list = Array.isArray(fwAll) ? fwAll : (fw ? [fw] : []);
+  const box = el("changelog"), body = el("changelogBody");
+  const rows = [];
+  list.forEach((f, i) => {
+    const note = (LANG === "zh" ? f.note_zh : f.note_en) || (LANG === "zh" ? "常规更新" : "Routine update");
+    const pts = String(note).split("|").map(s => s.trim()).filter(Boolean);
+    const badge = i === 0
+      ? '<span class="now">' + T("current", "当前") + "</span>"
+      : '<span class="old">' + T("earlier", "早期") + "</span>";
+    rows.push('<div class="ver"><span class="tag">' + f.version + "</span>" +
+      '<span class="date">' + (f.date || "") + "</span>" + badge + "</div>" +
+      "<ul>" + pts.map(p => "<li>" + p + "</li>").join("") + "</ul>");
+  });
+  if (!rows.length){ box.style.display = "none"; return; }
+  body.innerHTML = rows.join("");
+  box.style.display = "";
 }
 
 function hexToBytes(hex){

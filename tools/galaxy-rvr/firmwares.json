@@ -15,24 +15,24 @@
       "id": "galaxy-rvr-2.0.3",
       "version": "2.0.3",
       "date": "2026-10-16",
-      "note_en": "Current generation",
-      "note_zh": "现在的版本",
+      "note_en": "Fixed: the IP address printed at startup was truncated (http://192.168.:9000/mjpg)|Requires SunFounder_AI_Camera >= 1.2.2 when building from source",
+      "note_zh": "修复：启动打印的 IP 缺两段（http://192.168.:9000/mjpg）|自己编译源码时需要 SunFounder_AI_Camera >= 1.2.2",
       "file": "firmwares/galaxy-rvr-2.0.3.hex"
     },
     {
       "id": "galaxy-rvr-2.0.2",
       "version": "2.0.2",
       "date": "2026-10-10",
-      "note_en": "Previous generation",
-      "note_zh": "上一版",
+      "note_en": "Fixed: the board no longer resets in a loop with camera firmware 1.5.x|Requires SunFounder_AI_Camera >= 1.2.1",
+      "note_zh": "修复：摄像头固件 1.5.x 时主板反复重启|需要 SunFounder_AI_Camera >= 1.2.1",
       "file": "firmwares/galaxy-rvr-2.0.2.hex"
     },
     {
       "id": "galaxy-rvr-1.1.0",
       "version": "1.1.0",
       "date": "2023-08-31",
-      "note_en": "First generation",
-      "note_zh": "第一代",
+      "note_en": "First generation (2023); no release notes",
+      "note_zh": "第一代（2023 年）；无更新说明",
       "file": "firmwares/galaxy-rvr-1.1.0.hex"
     }
   ]
