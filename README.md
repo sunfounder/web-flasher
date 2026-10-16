@@ -77,6 +77,8 @@ esptool --chip esp32s3 merge_bin --flash_mode dio --flash_freq 80m --flash_size 
   换第二个，白下一次。做法是 <video> 只放 `data-src-zh` / `data-src-en`，由 JS 按语言填唯一的 `src`；
 - 步骤类页面把步骤写进地址栏 hash（`#step1/#step2/#step3`），刷新/前进后退都在当前步骤，
   也方便直接分享「打开就是调试」的链接：`?lang=zh#step3`。
+- 版本选择与更新日志都读 `firmwares.json`：版本下拉**默认最新**（旧版留着给用户回退），
+  更新日志取各版本的 `note_en` / `note_zh`（用 `|` 分隔多条），**发新固件只改 json、不动页面**。
 
 ## 新增一个 AVR（Arduino UNO）工具
 
