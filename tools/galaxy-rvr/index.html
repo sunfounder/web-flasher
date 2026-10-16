@@ -36,6 +36,7 @@ window.LANG = getLang();
   .steps li{cursor:pointer}
   .steps li.active{cursor:default}
   /* ---- 步骤内容 ---- */
+  /* 默认隐藏：JS 加载前也不许露出第 2、3 步的内容（否则会闪一下全部步骤） */
   .panel{display:none}
   .panel.active{display:block}
   .panel > p{margin:0 0 14px}
@@ -85,6 +86,11 @@ window.LANG = getLang();
   .lang-toggle{position:fixed;top:16px;right:16px;z-index:999;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:#1e293b}
   .lang-toggle:hover{background:#00a04f;color:#fff;border-color:#00a04f}
 </style>
+<noscript><style>
+  /* 没有 JS 时 showStep() 不会跑，全部显示（脚本失效也别让用户看着空白） */
+  .panel{display:block}
+  .faq{display:block}
+</style></noscript>
 </head>
 <body>
 <button class="lang-toggle" id="langToggle" onclick="toggleLang()">中文</button>
@@ -187,9 +193,9 @@ window.LANG = getLang();
        data-zh="日志第一行就是 <b>GalaxyRVR version X.Y.Z</b>，接着是 <b>Initialzing...</b> 和 <b>Okie!</b>。本页烧录的是 <b>2.0.2</b>。"></p>
   </details>
   <details>
-    <summary data-en="The light strip under the rover flashes red, or the camera version in the log is old" data-zh="火星车底部灯带闪红灯，或日志里摄像头版本偏低"></summary>
-    <p data-en="<b>ESP32 firmware version X.Y.Z</b> in the window above is the ESP32-CAM firmware. If it is older than <b>1.5.4</b>, or the strip under the rover does not flash <b>green</b> on boot, the camera firmware needs updating - see <a href='https://docs.sunfounder.com/projects/galaxy-rvr/en/latest/update_firmware.html#updating-the-esp32-cam-firmware' target='_blank' rel='noopener'>Updating the ESP32 CAM Firmware</a>."
-       data-zh="上面窗口里的 <b>ESP32 firmware version X.Y.Z</b> 就是 ESP32-CAM 的固件版本。如果低于 <b>1.5.4</b>，或者开机时火星车底部灯带不是<b>绿色</b>闪烁，说明摄像头固件需要更新——详见 <a href='https://docs.sunfounder.com/projects/galaxy-rvr/zh-cn/latest/update_firmware.html#esp32-cam' target='_blank' rel='noopener'>更新 ESP32 CAM 固件</a>。"></p>
+    <summary data-en="The light strip stays solid orange, or the camera version in the log is old" data-zh="火星车底部灯带常亮橙色，或日志里摄像头版本偏低"></summary>
+    <p data-en="<b>ESP32 firmware version X.Y.Z</b> in the window above is the ESP32-CAM firmware; if it is older than <b>1.5.4</b>, the camera firmware needs updating. The same applies when the strip under the rover does <b>not</b> flash <b>green</b> about 10 s after startup: with older camera firmware (such as 1.4.2) the strip stays <b>solid orange</b>, which also means the camera is not running. See <a href='https://docs.sunfounder.com/projects/galaxy-rvr/en/latest/update_firmware.html#updating-the-esp32-cam-firmware' target='_blank' rel='noopener'>Updating the ESP32 CAM Firmware</a>."
+       data-zh="上面窗口里的 <b>ESP32 firmware version X.Y.Z</b> 就是 ESP32-CAM 的固件版本；低于 <b>1.5.4</b> 就该更新。开机约 10 秒后火星车底部灯带<b>没有</b>闪<b>绿色</b>也是同一个问题：摄像头固件偏旧（如 <b>1.4.2</b>）时灯带会<b>常亮橙色</b>，说明摄像头没跑起来。详见 <a href='https://docs.sunfounder.com/projects/galaxy-rvr/zh-cn/latest/update_firmware.html#esp32-cam' target='_blank' rel='noopener'>更新 ESP32 CAM 固件</a>。"></p>
   </details>
   <details>
     <summary data-en="What is the Connect button for?" data-zh="右上角那个「连接」按钮是干什么的？"></summary>
@@ -243,8 +249,14 @@ let portBusy = false;     // true while a session is being opened/closed, or whi
 let step = 1;
 
 /* ---------- 步骤切换 ---------- */
+function stepFromHash(){
+  const m = (location.hash || "").match(/^#step([123])$/);
+  return m ? +m[1] : 1;
+}
+
 function showStep(n){
   step = n;
+  if (location.hash !== "#step" + n) history.replaceState(null, "", "#step" + n);
   panels.forEach((p, i) => p.classList.toggle("active", i === n - 1));
   faqs.forEach(f => f.classList.toggle("active", f.getAttribute("data-step") === String(n)));
   for (let i = 1; i <= 3; i++){
@@ -266,6 +278,8 @@ function showStep(n){
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => showStep(+b.dataset.go)));
 // 3 个步骤都可以直接点：只读调试的用户可以跳过烧录，直接进第 3 步连串口
 [1, 2, 3].forEach(n => el("si" + n).addEventListener("click", () => { if (step !== n) showStep(n); }));
+// 步骤写进地址栏 hash（#step1/#step2/#step3）：可直接分享「打开就是调试」的链接，浏览器前进/后退也能用
+addEventListener("hashchange", () => { const n = stepFromHash(); if (n !== step) showStep(n); });
 
 /* ---------- 输出窗口 ---------- */
 function write(text){
@@ -522,7 +536,8 @@ go.addEventListener("click", async () => {
   }
 });
 
-showStep(1);
+// 带 hash 打开（如 ?lang=zh#step3）直接进对应步骤：调试用户不用先点两下
+showStep(stepFromHash());
 updateLink();
 loadFirmware().catch(e => { status(T("Failed: ", "失败：") + e.message); });
 </script>
