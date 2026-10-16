@@ -12,11 +12,19 @@
   },
   "firmwares": [
     {
+      "id": "galaxy-rvr-2.0.3",
+      "version": "2.0.3",
+      "date": "2026-10-16",
+      "note_en": "Current generation",
+      "note_zh": "现在的版本",
+      "file": "firmwares/galaxy-rvr-2.0.3.hex"
+    },
+    {
       "id": "galaxy-rvr-2.0.2",
       "version": "2.0.2",
       "date": "2026-10-10",
-      "note_en": "Current generation",
-      "note_zh": "现在的版本",
+      "note_en": "Previous generation",
+      "note_zh": "上一版",
       "file": "firmwares/galaxy-rvr-2.0.2.hex"
     },
     {
