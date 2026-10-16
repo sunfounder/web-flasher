@@ -50,6 +50,8 @@ window.LANG = getLang();
   figure video{width:100%;border-radius:8px;border:1px solid #e4e8ec;display:block;background:#000}
   figcaption{font-size:13px;color:#77828e;margin-top:6px}
   .fwline{font-size:14px;color:#41505f;margin:0 0 10px}
+  .fwline select{font-size:14px;padding:5px 10px;border:1px solid #ccd3da;border-radius:6px;background:#fff;color:#222;margin-left:4px;cursor:pointer}
+  .fwline select:hover{border-color:#00a04f}
   button.go{display:block;font-size:17px;padding:12px 24px;border:0;border-radius:8px;cursor:pointer;background:#00a04f;color:#fff}
   button.go:disabled{opacity:.5;cursor:not-allowed}
   .bar{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin:14px 0 10px;max-width:460px}
@@ -84,6 +86,7 @@ window.LANG = getLang();
   details p{color:#555;font-size:14px;margin:8px 0 0;line-height:1.7}
   details p b{color:#333}
   /* ---- 更新日志（卡片内最后一块，数据来自 firmwares.json 的 note_en/note_zh）---- */
+  .fwnote{font-size:13px;color:#5b6672;margin:-4px 0 10px}
   .changelog{margin:18px 0 0;border-top:1px solid #e9edf1;padding-top:12px}
   .changelog h3{font-size:15px;margin:0 0 8px;color:#41505f}
   .changelog .ver{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:14px;margin:0 0 4px}
@@ -136,7 +139,11 @@ window.LANG = getLang();
   <section class="panel" id="p2">
     <p class="lead" data-en="Click the button below and pick the port of your board in the dialog - it is listed as <b>Arduino UNO R3</b> on the official board, or <b>USB-SERIAL CH340</b> on CH340 based boards. Do not unplug the cable while it is writing."
        data-zh="点下面的按钮，在弹窗里选主板对应的串口——官方板显示为 <b>Arduino UNO R3</b>，CH340 板显示为 <b>USB-SERIAL CH340</b>，二选一。写入过程中不要拔线。"></p>
-    <p class="fwline" id="fwline"></p>
+    <p class="fwline">
+      <span id="fwline"></span>
+      <select id="fwsel" aria-label="Firmware version"></select>
+    </p>
+    <p class="fwnote" id="fwnote"></p>
     <button class="go" id="go" data-en="Connect &amp; Flash" data-zh="连接并烧录"></button>
     <p class="notice" id="notice" data-en="This page needs Web Serial. Please open it in Chrome or Edge on a computer." data-zh="本页需要 Web Serial 支持，请在电脑上用 Chrome 或 Edge 打开。"></p>
     <div class="bar"><div id="bar"></div></div>
@@ -330,10 +337,38 @@ async function loadFirmware(){
   if (!resp.ok) throw new Error("HTTP " + resp.status);
   const cfg = await resp.json();
   BOARD = cfg.board || {};
-  fwAll = cfg.firmwares || [];
+  fwAll = (cfg.firmwares || []).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   fw = fwAll[0];
   if (!fw) throw new Error("empty firmware list");
-  fwline.textContent = T("Firmware in this page: ", "本页固件：") + fw.version + (fw.date ? " (" + fw.date + ")" : "");
+  renderFirmwarePicker();
+  setFirmware(fw);
+}
+
+/* ---------- 固件版本：默认最新，可选旧版回退 ---------- */
+function fwLabel(f){
+  return f.version + (f.date ? "  (" + f.date + ")" : "");
+}
+function renderFirmwarePicker(){
+  const sel = el("fwsel");
+  sel.innerHTML = "";
+  fwAll.forEach((f, i) => {
+    const o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = fwLabel(f) + (i === 0 ? T("  - latest", "  - 最新") : "");
+    sel.appendChild(o);
+  });
+  sel.addEventListener("change", () => {
+    const f = fwAll[+sel.value];
+    if (f) setFirmware(f);
+  });
+}
+function setFirmware(f){
+  fw = f;
+  const sel = el("fwsel");
+  if (sel) sel.value = String(fwAll.indexOf(f));
+  fwline.textContent = T("Firmware in this page: ", "本页固件：") + fwLabel(f);
+  const note = (LANG === "zh" ? f.note_zh : f.note_en) || "";
+  el("fwnote").innerHTML = note ? String(note).split("|")[0].trim() : "";
   renderChangelog();
 }
 
@@ -345,8 +380,9 @@ function renderChangelog(){
   list.forEach((f, i) => {
     const note = (LANG === "zh" ? f.note_zh : f.note_en) || (LANG === "zh" ? "常规更新" : "Routine update");
     const pts = String(note).split("|").map(s => s.trim()).filter(Boolean);
-    const badge = i === 0
-      ? '<span class="now">' + T("current", "当前") + "</span>"
+    const isCur = fw && f.id === fw.id;
+    const badge = isCur
+      ? '<span class="now">' + T("selected", "当前选用") + "</span>"
       : '<span class="old">' + T("earlier", "早期") + "</span>";
     rows.push('<div class="ver"><span class="tag">' + f.version + "</span>" +
       '<span class="date">' + (f.date || "") + "</span>" + badge + "</div>" +
