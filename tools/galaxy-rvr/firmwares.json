@@ -12,6 +12,14 @@
   },
   "firmwares": [
     {
+      "id": "galaxy-rvr-2.0.4",
+      "version": "2.0.4",
+      "date": "2026-11-02",
+      "note_en": "Fixed: the board no longer hangs in setup() after the camera is reset (2.0.3 could not boot)|Fixed: the camera is given time to finish booting before it is configured|Requires SunFounder_AI_Camera >= 1.2.3 when building from source",
+      "note_zh": "修复：摄像头复位后主板卡死在 setup()，2.0.3 开不了机|修复：配置摄像头前先等它启动完成|自己编译源码时需要 SunFounder_AI_Camera >= 1.2.3",
+      "file": "firmwares/galaxy-rvr-2.0.4.hex"
+    },
+    {
       "id": "galaxy-rvr-2.0.3",
       "version": "2.0.3",
       "date": "2026-10-16",
