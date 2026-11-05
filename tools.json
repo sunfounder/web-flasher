@@ -29,8 +29,8 @@
       "version": "1.0.0",
       "target": "O3402V10 ESP32 DEV Board（ESP32-WROVER-E，4MB Flash）",
       "target_en": "O3402V10 ESP32 DEV Board (ESP32-WROVER-E, 4MB flash)",
-      "desc": "出厂测试固件：IO2 橙色 LED 1Hz 闪烁，按 BOOT 循环切换 1/2/5/10Hz，串口 115200 打印（整包镜像，从 0x0 起烧）",
-      "desc_en": "Factory test firmware: IO2 orange LED blinks at 1 Hz, BOOT cycles 1/2/5/10 Hz, serial log at 115200 (merged image from 0x0)",
+      "desc": "产线一键测试烧录（参数已配好；烧完自动转串口日志，看 IO2 橙灯 1Hz 闪烁、按 BOOT 切 1/2/5/10Hz）",
+      "desc_en": "One-click factory test flashing (parameters preset; auto serial log after flashing; IO2 LED 1Hz, BOOT cycles 1/2/5/10Hz)",
       "path": "tools/esp32-dev-board/"
     },
     {
