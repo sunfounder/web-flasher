@@ -24,12 +24,12 @@
 <body>
 <a class="back" href="../../">← 返回工具列表</a>
 <h2>ESP32 DEV Board 测试烧录 · O3402V10</h2>
-<p class="ver">请用电脑上的 <b>Chrome 或 Edge</b> 打开本页（会自动检查，不满足会弹窗）；参数已配好，不用选。</p>
 
 <ol>
   <li>USB-C 线把板子连到电脑。</li>
-  <li>点「连接并刷机」，弹窗里选 <b>CH340</b> 串口。</li>
+  <li>点「连接并刷机」，弹窗里选 <b>USB Serial</b> 或 <b>CH340</b> 串口。</li>
   <li>完成后下面自动变成串口日志；板子没启动就按一下板上 <b>RST</b> 键。</li>
+  <li>按一下板上 <b>IO0</b> 按钮，LED 闪烁频率变快一档（1 → 2 → 5 → 10 Hz 循环）。</li>
 </ol>
 
 <button id="go">连接并刷机</button>
@@ -104,12 +104,23 @@ async function startMonitor(){
   log("===== 串口日志（115200）=====");
   monitoring = true;
   const decoder = new TextDecoder("utf-8", { fatal: false });
+  let pending = "";
+  const feed = (text) => {
+    pending += text;
+    let idx;
+    while ((idx = pending.indexOf("\n")) >= 0){
+      let line = pending.slice(0, idx);
+      pending = pending.slice(idx + 1);
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      log(line);
+    }
+  };
   try { reader = port.readable.getReader(); } catch (e) { log("[网页] 串口读取失败"); return; }
   try {
     for (;;){
       const { value, done } = await reader.read();
       if (done || !monitoring) break;
-      if (value && value.length) log(decoder.decode(value, { stream: true }));
+      if (value && value.length) feed(decoder.decode(value, { stream: true }));
     }
   } catch (e) { /* 拔掉 USB / 端口关闭 */ }
   finally {
@@ -193,7 +204,7 @@ go.addEventListener("click", async () => {
 
 /* ---------- 启动 ---------- */
 if (checkEnvironment()){
-  setStatus("先点下面的按钮；参数已配好。");
+  setStatus("点下面的按钮开始。");
   loadFirmware().catch(e => {
     setStatus("❌ " + e.message);
     log("[网页] " + e.message);
