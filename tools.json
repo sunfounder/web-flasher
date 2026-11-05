@@ -23,6 +23,17 @@
       "path": "tools/esp32-cam/"
     },
     {
+      "id": "esp32-dev-board",
+      "name": "ESP32 DEV Board 固件烧录",
+      "name_en": "ESP32 DEV Board Firmware Flash",
+      "version": "1.0.0",
+      "target": "O3402V10 ESP32 DEV Board（ESP32-WROVER-E，4MB Flash）",
+      "target_en": "O3402V10 ESP32 DEV Board (ESP32-WROVER-E, 4MB flash)",
+      "desc": "出厂测试固件：IO2 橙色 LED 1Hz 闪烁，按 BOOT 循环切换 1/2/5/10Hz，串口 115200 打印（整包镜像，从 0x0 起烧）",
+      "desc_en": "Factory test firmware: IO2 orange LED blinks at 1 Hz, BOOT cycles 1/2/5/10 Hz, serial log at 115200 (merged image from 0x0)",
+      "path": "tools/esp32-dev-board/"
+    },
+    {
       "id": "serial-monitor",
       "name": "串口监视器",
       "name_en": "Serial Monitor",

@@ -142,4 +142,5 @@ import { WebSerialTransport } from "../../vendor/webserial-flasher/transport/Web
 | 思天 QC 工具 | 1.0.4 | ESP32-S3（LilyGO T-Display-S3，16MB） |
 | GalaxyRVR 火星车 | 2.0.2 / 1.1.0 | Arduino UNO（ATmega328P；官方 UNO R3 或 CH340 板）；烧录后自动开串口 115200 |
 | AI Camera 固件烧录 | 1.5.4 | AI Camera（ESP32-CAM，专用烧录器） |
+| ESP32 DEV Board 固件烧录 | 1.0.0 | O3402V10 ESP32 DEV Board（ESP32-WROVER-E，4MB；出厂测试固件） |
 | 串口监视器 | — | 任意 USB 串口设备（Web Serial） |

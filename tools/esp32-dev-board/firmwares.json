@@ -1,0 +1,20 @@
+{
+  "firmwares": [
+    {
+      "id": "esp32-dev-board-ledtest-v1.0.0",
+      "version": "1.0.0",
+      "date": "2026-11-05",
+      "note": "出厂测试固件：IO2 橙色 LED 按 1Hz 闪烁，按 BOOT 循环切换 1/2/5/10Hz，串口 115200 打印频率与按键次数",
+      "flashMode": "dio",
+      "flashFreq": "80m",
+      "flashSize": "4MB",
+      "eraseAll": true,
+      "segments": [
+        {
+          "file": "firmwares/esp32-dev-board-ledtest-v1.0.0-merged.bin",
+          "address": 0
+        }
+      ]
+    }
+  ]
+}
