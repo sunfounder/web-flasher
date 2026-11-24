@@ -1,6 +1,22 @@
 {
   "firmwares": [
     {
+      "id": "qc-tool-v1.0.6",
+      "version": "1.0.6",
+      "date": "2026-11-24",
+      "note": "PiPower5 固件要求更新为正好 2.0.12（原 2.0.9 判红）；新增 1.0.5 的 OLED 测试 app",
+      "flashMode": "dio",
+      "flashFreq": "80m",
+      "flashSize": "16MB",
+      "eraseAll": true,
+      "segments": [
+        {
+          "file": "firmwares/qc-tool-v1.0.6-merged.bin",
+          "address": 0
+        }
+      ]
+    },
+    {
       "id": "qc-tool-v1.0.5",
       "version": "1.0.5",
       "date": "2026-10-15",
